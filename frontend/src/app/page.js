@@ -1,245 +1,404 @@
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
-import StatCard from "@/components/StatCard";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import ErpIcon from "@/components/ErpIcon";
+import "./erp.css";
+
+const books = [
+  {
+    title: "El Principito",
+    author: "Antoine de Saint-Exupéry",
+    sales: 128,
+    cover: "sage",
+  },
+  { title: "1984", author: "George Orwell", sales: 104, cover: "clay" },
+  {
+    title: "Cien años de soledad",
+    author: "Gabriel García Márquez",
+    sales: 97,
+    cover: "sand",
+  },
+  { title: "El Hobbit", author: "J. R. R. Tolkien", sales: 76, cover: "rose" },
+];
+const metrics = [
+  {
+    title: "Ventas del día",
+    value: "$1.250.000",
+    detail: "+12,5 % respecto a ayer",
+    icon: "sales",
+    tone: "success",
+  },
+  {
+    title: "Stock crítico",
+    value: "24 títulos",
+    detail: "Requieren reposición",
+    icon: "inventory",
+    tone: "danger",
+  },
+  {
+    title: "Cuentas por pagar",
+    value: "$850.000",
+    detail: "Próximos vencimientos",
+    icon: "accounting",
+    tone: "warning",
+  },
+  {
+    title: "Recepciones pendientes",
+    value: "7",
+    detail: "Por revisar y validar",
+    icon: "purchases",
+    tone: "neutral",
+  },
+];
 
 export default function Home() {
+  const [search, setSearch] = useState("");
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const visibleBooks = books.filter((book) =>
+    `${book.title} ${book.author}`
+      .toLocaleLowerCase("es")
+      .includes(search.toLocaleLowerCase("es").trim()),
+  );
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100">
-      <Sidebar />
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Navbar />
-
-        <main className="flex-1 overflow-y-auto p-6">
-          {/* Encabezado */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-800">
-              Dashboard
-            </h1>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Resumen general de la librería
-            </p>
+    <div className="erp-screen erp-home" lang="es">
+      <a className="erp-skip" href="#main-content">
+        Saltar al contenido
+      </a>
+      <aside className="erp-sidebar">
+        <Link href="/" className="erp-brand" aria-label="Librería ERP, inicio">
+          <span className="erp-brand-icon">
+            <ErpIcon name="book" />
+          </span>
+          <span>
+            Librería <b>ERP</b>
+            <small>SISTEMA DE GESTIÓN</small>
+          </span>
+        </Link>
+        <nav aria-label="Navegación principal">
+          <p className="erp-nav-label">PRINCIPAL</p>
+          <Link href="/" className="erp-nav-item is-active" aria-current="page">
+            <ErpIcon name="home" />
+            Inicio
+          </Link>
+          <p className="erp-nav-label">GESTIÓN</p>
+          {[
+            ["purchases", "Compras"],
+            ["sales", "Ventas"],
+            ["inventory", "Inventario"],
+            ["accounting", "Contabilidad"],
+          ].map(([icon, label]) => (
+            <button
+              key={label}
+              className="erp-nav-item"
+              disabled
+              title="Módulo pendiente de implementación"
+            >
+              <ErpIcon name={icon} />
+              {label}
+              <span className="erp-nav-arrow">›</span>
+            </button>
+          ))}
+          <p className="erp-nav-label">SISTEMA</p>
+          <button
+            className="erp-nav-item"
+            disabled
+            title="Módulo pendiente de implementación"
+          >
+            <ErpIcon name="settings" />
+            Administración
+          </button>
+        </nav>
+        <div className="erp-sidebar-note">
+          <span className="erp-dot" />
+          Todo en un mismo lugar<p>Una nueva página para tu librería.</p>
+        </div>
+        <div className="erp-sidebar-user">
+          <span className="erp-avatar">AD</span>
+          <div>
+            <strong>Administrador</strong>
+            <small>Vista de demostración</small>
           </div>
-
-          {/* KPIs */}
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              title="Ventas del día"
-              value="$1.250.000"
-              description="+12,5% respecto a ayer"
-              icon="💰"
-            />
-
-            <StatCard
-              title="Stock crítico"
-              value="24"
-              description="Títulos requieren reposición"
-              icon="📦"
-            />
-
-            <StatCard
-              title="Cuentas por pagar"
-              value="$850.000"
-              description="Vencimientos próximos"
-              icon="💳"
-            />
-
-            <StatCard
-              title="Recepciones"
-              value="7"
-              description="Pendientes de validación"
-              icon="🚚"
-            />
+          <Link
+            href="/login"
+            aria-label="Volver al login"
+            title="Volver al login"
+          >
+            <ErpIcon name="logout" />
+          </Link>
+        </div>
+      </aside>
+      <div className="erp-workspace">
+        <header className="erp-topbar">
+          <div className="erp-branch">
+            <span className="erp-muted">Sucursal</span>
+            <strong>Casa Matriz</strong>
           </div>
-
-          {/* Gráfico + órdenes */}
-          <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-            {/* Gráfico */}
-            <div className="rounded-xl bg-white p-6 shadow-sm xl:col-span-2">
-              <div className="mb-5">
-                <h2 className="font-semibold text-slate-800">
-                  Ventas últimos 30 días
-                </h2>
-
-                <p className="text-sm text-slate-500">
-                  Evolución de las ventas de la librería
-                </p>
-              </div>
-
-              <div className="flex h-64 items-end gap-2">
-                {[35, 48, 42, 60, 55, 72, 65, 80, 68, 90, 75, 85, 70, 95].map(
-                  (height, index) => (
-                    <div
-                      key={index}
-                      className="flex-1 rounded-t-md bg-blue-600"
-                      style={{ height: `${height}%` }}
-                    />
-                  )
-                )}
-              </div>
+          <span className="erp-demo-badge">Modo demo</span>
+          <div className="erp-topbar-actions">
+            <div className="erp-notifications">
+              <button
+                className="erp-icon-button"
+                aria-label="Notificaciones"
+                aria-expanded={notificationsOpen}
+                aria-controls="erp-notifications"
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+              >
+                <ErpIcon name="bell" />
+                <span className="erp-notification-dot" />
+              </button>
+              {notificationsOpen && (
+                <div className="erp-notification-panel" id="erp-notifications">
+                  <strong>Notificaciones de ejemplo</strong>
+                  <p>
+                    <span className="erp-status danger">Inventario</span>24
+                    títulos requieren reposición.
+                  </p>
+                  <p>
+                    <span className="erp-status warning">Compras</span>2 órdenes
+                    esperan aprobación.
+                  </p>
+                </div>
+              )}
             </div>
-
-            {/* Aprobaciones */}
-            <div className="rounded-xl bg-white p-6 shadow-sm">
-              <div className="mb-5">
-                <h2 className="font-semibold text-slate-800">
-                  Órdenes pendientes
-                </h2>
-
-                <p className="text-sm text-slate-500">
-                  Requieren aprobación
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <Order
-                  code="OC-00124"
-                  supplier="Editorial Planeta"
-                  amount="$485.000"
-                />
-
-                <Order
-                  code="OC-00125"
-                  supplier="Editorial SM"
-                  amount="$320.000"
-                />
-              </div>
-            </div>
+            <Link href="/login" className="erp-topbar-profile">
+              <span className="erp-avatar">AD</span>
+              <span>
+                Administrador<small>Volver al login</small>
+              </span>
+            </Link>
+            <button
+              className="erp-icon-button erp-mobile-menu"
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={menuOpen}
+              aria-controls="erp-mobile-nav"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <ErpIcon name="menu" />
+            </button>
           </div>
-
-          {/* Libros + actividad */}
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Libros */}
-            <div className="rounded-xl bg-white p-6 shadow-sm">
-              <h2 className="font-semibold text-slate-800">
-                📚 Libros más vendidos
-              </h2>
-
-              <p className="mb-5 text-sm text-slate-500">
-                Títulos con mayor rotación del mes
+        </header>
+        {menuOpen && (
+          <nav
+            id="erp-mobile-nav"
+            className="erp-mobile-nav"
+            aria-label="Navegación móvil"
+          >
+            <Link href="/">Inicio</Link>
+            <span>
+              Compras · Ventas · Inventario · Contabilidad (próximamente)
+            </span>
+            <Link href="/login">Volver al login</Link>
+          </nav>
+        )}
+        <main id="main-content" className="erp-main">
+          <div className="erp-page-heading">
+            <div>
+              <p className="erp-eyebrow">TU LIBRERÍA, DE UN VISTAZO</p>
+              <h1>Bienvenido a tu espacio de gestión</h1>
+              <p className="erp-muted">
+                Un resumen para comenzar el día con todo en orden.
               </p>
-
-              <div className="space-y-4">
-                {[
-                  ["El Principito", "Antoine de Saint-Exupéry", "128 ventas"],
-                  ["1984", "George Orwell", "104 ventas"],
-                  [
-                    "Cien años de soledad",
-                    "Gabriel García Márquez",
-                    "97 ventas",
-                  ],
-                  ["Harry Potter", "J. K. Rowling", "89 ventas"],
-                  ["El Hobbit", "J. R. R. Tolkien", "76 ventas"],
-                ].map(([title, author, sales], index) => (
-                  <div
-                    key={title}
-                    className="flex items-center gap-4 border-b border-slate-100 pb-3 last:border-0"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
-                      {index + 1}
-                    </div>
-
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-700">
-                        {title}
-                      </p>
-
-                      <p className="text-xs text-slate-400">
-                        {author}
-                      </p>
-                    </div>
-
-                    <span className="text-sm font-medium text-slate-600">
-                      {sales}
-                    </span>
+            </div>
+            <span className="erp-date">
+              <ErpIcon name="calendar" />4 de octubre de 2026
+              <small>Fecha de la demostración</small>
+            </span>
+          </div>
+          <div className="erp-demo-note">
+            <ErpIcon name="info" />
+            <span>
+              Vista previa del sistema. Los indicadores y registros son datos de
+              demostración.
+            </span>
+          </div>
+          <section
+            className="erp-metrics"
+            aria-label="Indicadores de la librería"
+          >
+            {metrics.map((metric) => (
+              <article key={metric.title} className="erp-card erp-metric">
+                <div className="erp-metric-heading">
+                  <h2>{metric.title}</h2>
+                  <span className={`erp-metric-icon ${metric.tone}`}>
+                    <ErpIcon name={metric.icon} />
+                  </span>
+                </div>
+                <strong className="erp-metric-value">{metric.value}</strong>
+                <p className={`erp-metric-detail ${metric.tone}`}>
+                  {metric.tone === "success" && <ErpIcon name="trend" />}
+                  {metric.detail}
+                </p>
+              </article>
+            ))}
+          </section>
+          <div className="erp-overview-grid">
+            <section className="erp-card erp-sales-panel">
+              <div className="erp-section-heading">
+                <div>
+                  <p className="erp-eyebrow">EL PULSO DE TU NEGOCIO</p>
+                  <h2>Ventas de la semana</h2>
+                </div>
+                <span className="erp-period">Últimos 7 días</span>
+              </div>
+              <div className="erp-chart-total">
+                <strong>$7.840.000</strong>
+                <span className="erp-status success">↗ 8,2 %</span>
+                <span className="erp-muted">vs. semana anterior</span>
+              </div>
+              <div
+                className="erp-chart"
+                role="img"
+                aria-label="Ventas de ejemplo: lunes 780 mil, martes 950 mil, miércoles 1 millón 120 mil, jueves 980 mil, viernes 1 millón 480 mil, sábado 1 millón 280 mil, domingo 1 millón 250 mil pesos."
+              >
+                <div className="erp-chart-scale">
+                  <span>$1,5 M</span>
+                  <span>$1 M</span>
+                  <span>$0,5 M</span>
+                  <span>$0</span>
+                </div>
+                <div className="erp-chart-plot">
+                  <div className="erp-chart-grid" />
+                  {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map(
+                    (day, index) => (
+                      <div className="erp-chart-column" key={day}>
+                        <div className={`erp-bar erp-bar-${index + 1}`} />
+                        <span>{day}</span>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+              <div className="erp-chart-legend">
+                <span className="erp-dot" />
+                Ventas totales en pesos chilenos
+              </div>
+            </section>
+            <section className="erp-card erp-orders-panel">
+              <div className="erp-section-heading">
+                <div>
+                  <p className="erp-eyebrow">POR REVISAR</p>
+                  <h2>Órdenes pendientes</h2>
+                </div>
+                <span className="erp-count">2</span>
+              </div>
+              <p className="erp-muted erp-section-description">
+                Compras que esperan aprobación.
+              </p>
+              {[
+                ["OC-00124", "Editorial Planeta", "$485.000"],
+                ["OC-00125", "Editorial SM", "$320.000"],
+              ].map(([code, supplier, amount]) => (
+                <article key={code} className="erp-order">
+                  <div>
+                    <strong>{code}</strong>
+                    <span className="erp-status warning">Pendiente</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Actividad */}
-            <div className="rounded-xl bg-white p-6 shadow-sm">
-              <h2 className="font-semibold text-slate-800">
-                🕐 Actividad reciente
-              </h2>
-
-              <p className="mb-5 text-sm text-slate-500">
-                Últimos eventos registrados
+                  <p className="erp-muted">{supplier}</p>
+                  <strong className="erp-order-amount">{amount}</strong>
+                </article>
+              ))}
+              <p className="erp-panel-footnote">
+                <ErpIcon name="info" />
+                La gestión de compras estará disponible próximamente.
               </p>
-
-              <div className="space-y-5">
-                <Activity
-                  title="Venta registrada"
-                  description="Boleta #B-002341"
-                  time="Hace 5 minutos"
-                />
-
-                <Activity
-                  title="Stock actualizado"
-                  description="El Principito +20 unidades"
-                  time="Hace 18 minutos"
-                />
-
-                <Activity
-                  title="Recepción registrada"
-                  description="Editorial Planeta"
-                  time="Hace 32 minutos"
-                />
-
-                <Activity
-                  title="Orden aprobada"
-                  description="OC-00120"
-                  time="Hace 1 hora"
-                />
-              </div>
-            </div>
+            </section>
           </div>
+          <div className="erp-details-grid">
+            <section className="erp-card erp-books-panel">
+              <div className="erp-section-heading">
+                <div>
+                  <p className="erp-eyebrow">HISTORIAS QUE SE MUEVEN</p>
+                  <h2>Libros más vendidos</h2>
+                </div>
+                <span className="erp-period">Este mes</span>
+              </div>
+              <label className="erp-search">
+                <ErpIcon name="search" />
+                <input
+                  type="search"
+                  aria-label="Buscar por título o autor"
+                  placeholder="Buscar por título o autor…"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </label>
+              <ul className="erp-book-list">
+                {visibleBooks.map((book) => (
+                  <li key={book.title}>
+                    <span
+                      className={`erp-book-cover ${book.cover}`}
+                      aria-hidden="true"
+                    >
+                      <ErpIcon name="book" />
+                    </span>
+                    <div>
+                      <strong>{book.title}</strong>
+                      <span>{book.author}</span>
+                    </div>
+                    <span className="erp-book-sales">
+                      <strong>{book.sales}</strong> ventas
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {visibleBooks.length === 0 && (
+                <p className="erp-empty" role="status">
+                  No hay libros que coincidan con tu búsqueda.
+                </p>
+              )}
+            </section>
+            <section className="erp-card erp-activity-panel">
+              <div className="erp-section-heading">
+                <div>
+                  <p className="erp-eyebrow">LO ÚLTIMO EN TU LIBRERÍA</p>
+                  <h2>Actividad reciente</h2>
+                </div>
+                <ErpIcon name="clock" />
+              </div>
+              <ol className="erp-activity-list">
+                {[
+                  [
+                    "sales",
+                    "Venta registrada",
+                    "Boleta #B-002341",
+                    "Hace 5 minutos",
+                  ],
+                  [
+                    "inventory",
+                    "Stock actualizado",
+                    "El Principito · +20 unidades",
+                    "Hace 18 minutos",
+                  ],
+                  [
+                    "purchases",
+                    "Recepción registrada",
+                    "Editorial Planeta",
+                    "Hace 32 minutos",
+                  ],
+                  ["accounting", "Orden aprobada", "OC-00120", "Hace 1 hora"],
+                ].map(([icon, title, detail, time]) => (
+                  <li key={title}>
+                    <span className="erp-activity-icon">
+                      <ErpIcon name={icon} />
+                    </span>
+                    <div>
+                      <strong>{title}</strong>
+                      <p>{detail}</p>
+                      <small>{time}</small>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </div>
+          <footer className="erp-footer">
+            <span>Librería ERP</span>
+            <span>Compras · Ventas · Inventario · Contabilidad</span>
+          </footer>
         </main>
-      </div>
-    </div>
-  );
-}
-
-function Order({ code, supplier, amount }) {
-  return (
-    <div className="rounded-lg border border-slate-200 p-4">
-      <div className="flex items-center justify-between">
-        <span className="font-medium text-slate-700">{code}</span>
-
-        <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-700">
-          Pendiente
-        </span>
-      </div>
-
-      <p className="mt-2 text-sm text-slate-500">{supplier}</p>
-
-      <p className="mt-1 font-semibold text-slate-700">{amount}</p>
-
-      <div className="mt-3 flex gap-2">
-        <button className="flex-1 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700">
-          Aprobar
-        </button>
-
-        <button className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200">
-          Rechazar
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Activity({ title, description, time }) {
-  return (
-    <div className="flex gap-4">
-      <div className="mt-1 h-3 w-3 shrink-0 rounded-full bg-blue-600" />
-
-      <div>
-        <p className="font-medium text-slate-700">{title}</p>
-
-        <p className="text-sm text-slate-500">{description}</p>
-
-        <p className="mt-1 text-xs text-slate-400">{time}</p>
       </div>
     </div>
   );
