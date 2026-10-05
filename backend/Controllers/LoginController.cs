@@ -18,7 +18,8 @@ namespace backend.Controllers
             {
                 try
                 {
-                    string query = "SELECT id_usuario, id_rol, password_hash FROM USUARIO WHERE correo = @user AND estado = 'activo'";
+                    // Agregamos 'nombre' a la consulta para llevárnoslo al frontend
+                    string query = "SELECT id_usuario, id_rol, nombre, password_hash FROM USUARIO WHERE correo = @user AND estado = 'activo'";
 
                     using (MySqlCommand comando = new MySqlCommand(query, conexion))
                     {
@@ -30,39 +31,23 @@ namespace backend.Controllers
                             if (lector.HasRows)
                             {
                                 lector.Read();
-                                // Aplicamos Trim() por si se guardó con espacios accidentales en MySQL
                                 string hashGuardado = lector["password_hash"].ToString().Trim();
 
-                                try
-                                {
-                                    bool claveCorrecta = BCrypt.Net.BCrypt.Verify(password, hashGuardado);
+                                bool claveCorrecta = BCrypt.Net.BCrypt.Verify(password, hashGuardado);
 
-                                    if (claveCorrecta)
-                                    {
-                                        return Json(new
-                                        {
-                                            success = true,
-                                            id_usuario = lector["id_usuario"].ToString(),
-                                            id_rol = lector["id_rol"].ToString()
-                                        });
-                                    }
-                                    else
-                                    {
-                                        // Si falla aquí, significa que la clave Password123! no es la dueña de ese Hash
-                                        return Json(new { success = false, error = $"Falla BCrypt: La clave '{password}' no coincide con el hash guardado." });
-                                    }
-                                }
-                                catch (Exception bcEx)
+                                if (claveCorrecta)
                                 {
-                                    // Si falla aquí, el formato del hash en la base de datos está corrupto
-                                    return Json(new { success = false, error = "Error de formato Hash: " + bcEx.Message });
+                                    return Json(new
+                                    {
+                                        success = true,
+                                        id_usuario = lector["id_usuario"].ToString(),
+                                        id_rol = lector["id_rol"].ToString(),
+                                        nombre = lector["nombre"].ToString() // <-- Mandamos el nombre aquí
+                                    });
                                 }
                             }
-                            else
-                            {
-                                // Si falla aquí, el correo no está llegando bien o no existe
-                                return Json(new { success = false, error = $"BD: No se encontró el correo '{email}' en estado activo." });
-                            }
+
+                            return Json(new { success = false, error = "Correo o contraseña incorrectos." });
                         }
                     }
                 }

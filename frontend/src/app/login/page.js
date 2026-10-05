@@ -29,7 +29,12 @@ export default function Login() {
 
       if (result.success) {
         setMessage("¡Acceso concedido! Redirigiendo...");
+        
+        // Guardamos el rol y el nombre en el navegador
         localStorage.setItem("id_rol", result.id_rol);
+        localStorage.setItem("nombre_usuario", result.nombre); 
+
+        // Te manda a la página principal / dashboard
         router.push("/"); 
       } else {
         setMessage(result.error);
@@ -66,56 +71,7 @@ export default function Login() {
             Conecta tus compras, ventas, inventario y contabilidad. Más tiempo
             para las historias, menos para los pendientes.
           </p>
-          <div className="erp-book-illustration" aria-hidden="true">
-            <div className="erp-illustration-circle" />
-            <div className="erp-illustrated-book book-one">
-              <span>
-                HISTORIAS
-                <br />
-                QUE CRECEN
-              </span>
-              <ErpIcon name="book" />
-            </div>
-            <div className="erp-illustrated-book book-two">
-              <span>
-                UN NUEVO
-                <br />
-                CAPÍTULO
-              </span>
-              <span className="erp-book-orbit" />
-            </div>
-            <div className="erp-illustrated-book book-three">
-              <span>
-                EL ARTE
-                <br />
-                DE LEER
-              </span>
-              <ErpIcon name="book" />
-            </div>
-            <div className="erp-book-shelf" />
-          </div>
-          <div className="erp-story-modules">
-            <span>
-              <ErpIcon name="purchases" />
-              Compras
-            </span>
-            <span>
-              <ErpIcon name="sales" />
-              Ventas
-            </span>
-            <span>
-              <ErpIcon name="inventory" />
-              Inventario
-            </span>
-            <span>
-              <ErpIcon name="accounting" />
-              Contabilidad
-            </span>
-          </div>
         </div>
-        <p className="erp-story-footer">
-          Un nuevo capítulo en la gestión de tu librería.
-        </p>
       </section>
       <section className="erp-login-form-panel" aria-labelledby="login-title">
         <div className="erp-login-form-wrap">
@@ -157,18 +113,13 @@ export default function Login() {
               <button
                 type="button"
                 className="erp-password-toggle"
-                aria-label={
-                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                }
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 aria-pressed={showPassword}
                 onClick={() => setShowPassword(!showPassword)}
               >
                 <ErpIcon name={showPassword ? "eyeOff" : "eye"} />
               </button>
             </div>
-            <p className="erp-login-help">
-              ¿Necesitas acceso? Contacta al administrador de tu librería.
-            </p>
             {message && (
               <p id="login-message" className="erp-login-message" role="status">
                 {message}
@@ -179,24 +130,7 @@ export default function Login() {
               <ErpIcon name="arrow" />
             </button>
           </form>
-          <div className="erp-demo-divider">
-            <span>CONOCE TU ESPACIO</span>
-          </div>
-          <Link href="/" className="erp-demo-link">
-            Explorar demo del sistema
-            <ErpIcon name="arrow" />
-          </Link>
-          <p className="erp-demo-caption">
-            Vista de demostración con datos de ejemplo.
-          </p>
-          <div className="erp-login-bottom">
-            <ErpIcon name="lock" />
-            <span>El acceso con credenciales está conectado.</span>
-          </div>
         </div>
-        <footer className="erp-login-footer">
-          Librería ERP · Sistema de gestión
-        </footer>
       </section>
     </main>
   );
