@@ -9,11 +9,35 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setMessage(
-      "El acceso con credenciales estará disponible cuando se conecte el servicio de autenticación. Por ahora puedes explorar la demo.",
-    );
+    setMessage("Conectando con el servidor...");
+
+    // Preparamos los datos tal como los espera C#
+    const params = new URLSearchParams();
+    params.append('email', event.target.email.value);
+    params.append('password', event.target.password.value);
+
+    try {
+      // Llamada a tu backend de ASP.NET (Asegúrate de que Visual Studio esté en Play)
+      const response = await fetch("https://localhost:44379/Login/Ingresar", {
+        method: "POST",
+        body: params
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage("¡Acceso concedido! Redirigiendo al Dashboard...");
+        // Aquí puedes guardar el perfil en localStorage o usar el router de Next.js
+        // localStorage.setItem("id_rol", result.id_rol);
+        // window.location.href = "/dashboard"; 
+      } else {
+        setMessage(result.error);
+      }
+    } catch (error) {
+      setMessage("Error: No se pudo conectar con el backend de C#.");
+    }
   }
 
   return (
