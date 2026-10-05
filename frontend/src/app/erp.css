@@ -1318,3 +1318,37 @@
     gap: 8px;
   }
 }
+
+/* Estado y controles de sesión */
+.erp-auth-state {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 30px;
+  text-align: center;
+}
+.erp-auth-state .erp-primary-button {
+  width: auto;
+  margin: 0;
+}
+.erp-logout-button,
+.erp-profile-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+.erp-sidebar-user .erp-logout-button {
+  margin-left: auto;
+  color: var(--color-text-muted);
+}
+.erp-logout-button:hover,
+.erp-profile-button:hover {
+  color: var(--color-primary);
+}
+.erp-screen button:disabled {
+  opacity: 0.65;
+}

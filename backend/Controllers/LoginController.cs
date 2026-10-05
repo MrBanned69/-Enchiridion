@@ -1,61 +1,170 @@
-﻿using System;
+using System;
+using System.Configuration;
+using System.Diagnostics;
+using System.Globalization;
+using System.Web.Security;
 using System.Web.Mvc;
 using MySql.Data.MySqlClient;
-using System.Configuration;
-using BCrypt.Net;
 
 namespace backend.Controllers
 {
     public class LoginController : Controller
     {
+        private const int DuracionSesionHoras = 8;
+
         [HttpPost]
         public JsonResult Ingresar(string email, string password)
         {
-            Response.AppendHeader("Access-Control-Allow-Origin", "*");
-            string cadenaConexion = ConfigurationManager.ConnectionStrings["ConexionMySQL"].ConnectionString;
+            Response.Cache.SetCacheability(System.Web.HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
 
-            using (MySqlConnection conexion = new MySqlConnection(cadenaConexion))
+            if (string.IsNullOrWhiteSpace(email) || email.Trim().Length > 100 ||
+                string.IsNullOrEmpty(password))
             {
-                try
+                return Error(400, "Ingresa el correo y la contraseña.");
+            }
+
+            try
+            {
+                using (var conexion = CrearConexion())
+                using (var comando = new MySqlCommand(
+                    @"SELECT u.id_usuario, u.id_rol, u.nombre, u.correo,
+                             u.password_hash, r.nombre AS rol
+                      FROM USUARIO u
+                      INNER JOIN ROL r ON r.id_rol = u.id_rol
+                      WHERE u.correo = @correo AND u.estado = 'activo'
+                      LIMIT 1", conexion))
                 {
-                    // Agregamos 'nombre' a la consulta para llevárnoslo al frontend
-                    string query = "SELECT id_usuario, id_rol, nombre, password_hash FROM USUARIO WHERE correo = @user AND estado = 'activo'";
+                    comando.Parameters.AddWithValue("@correo", email.Trim());
+                    conexion.Open();
 
-                    using (MySqlCommand comando = new MySqlCommand(query, conexion))
+                    using (var lector = comando.ExecuteReader())
                     {
-                        comando.Parameters.AddWithValue("@user", email.Trim());
-
-                        conexion.Open();
-                        using (MySqlDataReader lector = comando.ExecuteReader())
+                        if (!lector.Read() ||
+                            !BCrypt.Net.BCrypt.Verify(password, lector["password_hash"].ToString().Trim()))
                         {
-                            if (lector.HasRows)
-                            {
-                                lector.Read();
-                                string hashGuardado = lector["password_hash"].ToString().Trim();
-
-                                bool claveCorrecta = BCrypt.Net.BCrypt.Verify(password, hashGuardado);
-
-                                if (claveCorrecta)
-                                {
-                                    return Json(new
-                                    {
-                                        success = true,
-                                        id_usuario = lector["id_usuario"].ToString(),
-                                        id_rol = lector["id_rol"].ToString(),
-                                        nombre = lector["nombre"].ToString() // <-- Mandamos el nombre aquí
-                                    });
-                                }
-                            }
-
-                            return Json(new { success = false, error = "Correo o contraseña incorrectos." });
+                            return Error(401, "Correo o contraseña incorrectos.");
                         }
+
+                        var usuario = LeerUsuario(lector);
+                        var ahora = DateTime.Now;
+                        var ticket = new FormsAuthenticationTicket(
+                            1, usuario.id_usuario, ahora,
+                            ahora.AddHours(DuracionSesionHoras), false, "");
+
+                        // Solo Next.js recibe este comprobante; el navegador lo guarda
+                        // en una cookie HttpOnly, sin exponerlo al código de las pantallas.
+                        return Json(new
+                        {
+                            success = true,
+                            usuario,
+                            sessionToken = FormsAuthentication.Encrypt(ticket),
+                            expiresIn = DuracionSesionHoras * 60 * 60
+                        });
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("No se pudo iniciar sesión: {0}", ex.GetType().Name);
+                return Error(503, "El servicio de acceso no está disponible. Intenta nuevamente.");
+            }
+        }
+
+        [HttpGet]
+        public JsonResult Sesion()
+        {
+            Response.Cache.SetCacheability(System.Web.HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+
+            string cabecera = Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(cabecera) ||
+                !cabecera.StartsWith("Bearer ", StringComparison.Ordinal))
+            {
+                return Error(401, "Debes iniciar sesión.");
+            }
+
+            FormsAuthenticationTicket ticket;
+            int idUsuario;
+
+            try
+            {
+                ticket = FormsAuthentication.Decrypt(cabecera.Substring(7));
+                if (ticket == null || ticket.Expired ||
+                    !int.TryParse(ticket.Name, out idUsuario) || idUsuario <= 0)
                 {
-                    return Json(new { success = false, error = "Error del servidor: " + ex.Message });
+                    return Error(401, "Tu sesión ha vencido. Inicia sesión nuevamente.");
                 }
             }
+            catch (Exception)
+            {
+                return Error(401, "La sesión no es válida.");
+            }
+
+            try
+            {
+                using (var conexion = CrearConexion())
+                using (var comando = new MySqlCommand(
+                    @"SELECT u.id_usuario, u.id_rol, u.nombre, u.correo, r.nombre AS rol
+                      FROM USUARIO u
+                      INNER JOIN ROL r ON r.id_rol = u.id_rol
+                      WHERE u.id_usuario = @id AND u.estado = 'activo'
+                      LIMIT 1", conexion))
+                {
+                    comando.Parameters.AddWithValue("@id", idUsuario);
+                    conexion.Open();
+
+                    using (var lector = comando.ExecuteReader())
+                    {
+                        if (!lector.Read())
+                        {
+                            return Error(401, "Tu cuenta no tiene acceso al sistema.");
+                        }
+
+                        return Json(new { success = true, usuario = LeerUsuario(lector) },
+                            JsonRequestBehavior.AllowGet);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("No se pudo comprobar la sesión: {0}", ex.GetType().Name);
+                return Error(503, "No se pudo comprobar tu sesión. Intenta nuevamente.");
+            }
+        }
+
+        private static MySqlConnection CrearConexion()
+        {
+            return new MySqlConnection(
+                ConfigurationManager.ConnectionStrings["ConexionMySQL"].ConnectionString);
+        }
+
+        private static UsuarioSesion LeerUsuario(MySqlDataReader lector)
+        {
+            return new UsuarioSesion
+            {
+                id_usuario = Convert.ToString(lector["id_usuario"], CultureInfo.InvariantCulture),
+                id_rol = Convert.ToString(lector["id_rol"], CultureInfo.InvariantCulture),
+                nombre = lector["nombre"].ToString(),
+                correo = lector["correo"].ToString(),
+                rol = lector["rol"].ToString()
+            };
+        }
+
+        private JsonResult Error(int estado, string mensaje)
+        {
+            Response.StatusCode = estado;
+            Response.TrySkipIisCustomErrors = true;
+            return Json(new { success = false, error = mensaje }, JsonRequestBehavior.AllowGet);
+        }
+
+        private sealed class UsuarioSesion
+        {
+            public string id_usuario { get; set; }
+            public string id_rol { get; set; }
+            public string nombre { get; set; }
+            public string correo { get; set; }
+            public string rol { get; set; }
         }
     }
 }

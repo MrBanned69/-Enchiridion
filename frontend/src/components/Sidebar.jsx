@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 
 export default function Sidebar() {
+  const { usuario, iniciales } = useAuth();
   const [openModule, setOpenModule] = useState(null);
 
   const toggleModule = (module) => {
@@ -12,7 +14,6 @@ export default function Sidebar() {
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col bg-slate-900 text-white">
-
       {/* Logo */}
       <div className="flex h-20 shrink-0 items-center border-b border-slate-800 px-6">
         <div className="flex items-center gap-3">
@@ -22,16 +23,13 @@ export default function Sidebar() {
 
           <div>
             <h1 className="font-bold">Librería ERP</h1>
-            <p className="text-xs text-slate-400">
-              Sistema de gestión
-            </p>
+            <p className="text-xs text-slate-400">Sistema de gestión</p>
           </div>
         </div>
       </div>
 
       {/* Navegación */}
       <nav className="flex-1 overflow-y-auto p-4">
-
         <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Principal
         </p>
@@ -58,9 +56,7 @@ export default function Sidebar() {
             Compras
           </span>
 
-          <span>
-            {openModule === "compras" ? "⌃" : "⌄"}
-          </span>
+          <span>{openModule === "compras" ? "⌃" : "⌄"}</span>
         </button>
 
         {openModule === "compras" && (
@@ -98,9 +94,7 @@ export default function Sidebar() {
             Ventas
           </span>
 
-          <span>
-            {openModule === "ventas" ? "⌃" : "⌄"}
-          </span>
+          <span>{openModule === "ventas" ? "⌃" : "⌄"}</span>
         </button>
 
         {openModule === "ventas" && (
@@ -138,9 +132,7 @@ export default function Sidebar() {
             Inventario
           </span>
 
-          <span>
-            {openModule === "inventario" ? "⌃" : "⌄"}
-          </span>
+          <span>{openModule === "inventario" ? "⌃" : "⌄"}</span>
         </button>
 
         {openModule === "inventario" && (
@@ -178,9 +170,7 @@ export default function Sidebar() {
             Contabilidad
           </span>
 
-          <span>
-            {openModule === "contabilidad" ? "⌃" : "⌄"}
-          </span>
+          <span>{openModule === "contabilidad" ? "⌃" : "⌄"}</span>
         </button>
 
         {openModule === "contabilidad" && (
@@ -219,24 +209,21 @@ export default function Sidebar() {
           <span>⚙️</span>
           Administración
         </Link>
-
       </nav>
 
       {/* Usuario */}
       <div className="shrink-0 border-t border-slate-800 p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold">
-            JD
+            {iniciales || "—"}
           </div>
 
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">
-              Juan Pérez
+              {usuario?.nombre || "Sin sesión"}
             </p>
 
-            <p className="text-xs text-slate-400">
-              Administrador
-            </p>
+            <p className="text-xs text-slate-400">{usuario?.rol || ""}</p>
           </div>
         </div>
       </div>

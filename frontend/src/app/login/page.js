@@ -4,43 +4,30 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
+import { useAuth } from "@/components/AuthProvider";
 import "../erp.css";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const { login } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setMessage("Conectando con el servidor...");
-
-    const params = new URLSearchParams();
-    params.append('email', event.target.email.value);
-    params.append('password', event.target.password.value);
+    if (submitting) return;
+    const form = new FormData(event.currentTarget);
+    setSubmitting(true);
+    setMessage("");
 
     try {
-      const response = await fetch("https://localhost:44379/Login/Ingresar", {
-        method: "POST",
-        body: params
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setMessage("¡Acceso concedido! Redirigiendo...");
-        
-        // Guardamos el rol y el nombre en el navegador
-        localStorage.setItem("id_rol", result.id_rol);
-        localStorage.setItem("nombre_usuario", result.nombre); 
-
-        // Te manda a la página principal / dashboard
-        router.push("/"); 
-      } else {
-        setMessage(result.error);
-      }
+      await login(form.get("email"), form.get("password"));
+      router.replace("/");
     } catch (error) {
-      setMessage("Error: No se pudo conectar con el backend de C#.");
+      setMessage(error.message || "No se pudo iniciar sesión.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -113,7 +100,9 @@ export default function Login() {
               <button
                 type="button"
                 className="erp-password-toggle"
-                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
                 aria-pressed={showPassword}
                 onClick={() => setShowPassword(!showPassword)}
               >
@@ -125,8 +114,13 @@ export default function Login() {
                 {message}
               </p>
             )}
-            <button className="erp-primary-button" type="submit">
-              Ingresar
+            <button
+              className="erp-primary-button"
+              type="submit"
+              disabled={submitting}
+              aria-busy={submitting}
+            >
+              {submitting ? "Ingresando…" : "Ingresar"}
               <ErpIcon name="arrow" />
             </button>
           </form>

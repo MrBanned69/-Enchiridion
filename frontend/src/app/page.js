@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
+import { useAuth } from "@/components/AuthProvider";
 import "./erp.css";
 
 const books = [
@@ -58,32 +59,58 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  
-  // Estado para guardar el nombre y las iniciales del usuario conectado
-  const [nombreUsuario, setNombreUsuario] = useState("Administrador");
-  const [iniciales, setIniciales] = useState("AD");
+
+  const router = useRouter();
+  const { usuario, iniciales, loading, error, logout, refreshSession } =
+    useAuth();
+  const [logoutError, setLogoutError] = useState("");
+  const [closingSession, setClosingSession] = useState(false);
 
   useEffect(() => {
-    // Leemos el nombre guardado en el navegador tras hacer login
-    const guardado = localStorage.getItem("nombre_usuario");
-    if (guardado) {
-      setNombreUsuario(guardado);
-      
-      // Generamos las iniciales automáticamente (Ej: "Administrador General" -> "AG")
-      const partes = guardado.split(" ");
-      if (partes.length >= 2) {
-        setIniciales((partes[0][0] + partes[1][0]).toUpperCase());
-      } else {
-        setIniciales(guardado.substring(0, 2).toUpperCase());
-      }
+    if (!loading && !usuario && !error) router.replace("/login");
+  }, [loading, usuario, error, router]);
+
+  const nombreUsuario = usuario?.nombre || "";
+
+  async function handleLogout() {
+    if (closingSession) return;
+    setClosingSession(true);
+    setLogoutError("");
+    try {
+      await logout();
+      router.replace("/login");
+    } catch (error) {
+      setLogoutError(error.message || "No se pudo cerrar sesión.");
+    } finally {
+      setClosingSession(false);
     }
-  }, []);
+  }
 
   const visibleBooks = books.filter((book) =>
     `${book.title} ${book.author}`
       .toLocaleLowerCase("es")
       .includes(search.toLocaleLowerCase("es").trim()),
   );
+
+  if (loading || !usuario || error) {
+    return (
+      <main className="erp-screen erp-auth-state" lang="es">
+        <p role="status">{error || "Comprobando tu sesión…"}</p>
+        {error && (
+          <>
+            <button
+              type="button"
+              className="erp-primary-button"
+              onClick={refreshSession}
+            >
+              Reintentar
+            </button>
+            <Link href="/login">Volver al login</Link>
+          </>
+        )}
+      </main>
+    );
+  }
 
   return (
     <div className="erp-screen erp-home" lang="es">
@@ -138,21 +165,24 @@ export default function Home() {
           <span className="erp-dot" />
           Todo en un mismo lugar<p>Una nueva página para tu librería.</p>
         </div>
-        
+
         {/* SECCIÓN USUARIO SIDEBAR (Dinámica) */}
         <div className="erp-sidebar-user">
           <span className="erp-avatar">{iniciales}</span>
           <div>
             <strong>{nombreUsuario}</strong>
-            <small>Sesión activa</small>
+            <small>{usuario.rol}</small>
           </div>
-          <Link
-            href="/login"
-            aria-label="Volver al login"
-            title="Volver al login"
+          <button
+            type="button"
+            className="erp-logout-button"
+            onClick={handleLogout}
+            disabled={closingSession}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
           >
             <ErpIcon name="logout" />
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -191,12 +221,22 @@ export default function Home() {
             </div>
 
             {/* SECCIÓN PERFIL TOPBAR (Dinámica) */}
-            <Link href="/login" className="erp-topbar-profile">
+            <button
+              type="button"
+              className="erp-topbar-profile erp-profile-button"
+              onClick={handleLogout}
+              disabled={closingSession}
+              aria-label="Cerrar sesión"
+            >
               <span className="erp-avatar">{iniciales}</span>
               <span>
-                {nombreUsuario}<small>Cerrar sesión</small>
+                {nombreUsuario}
+                <small>
+                  {usuario.rol} ·{" "}
+                  {closingSession ? "Cerrando…" : "Cerrar sesión"}
+                </small>
               </span>
-            </Link>
+            </button>
 
             <button
               className="erp-icon-button erp-mobile-menu"
@@ -220,11 +260,23 @@ export default function Home() {
             <span>
               Compras · Ventas · Inventario · Contabilidad (próximamente)
             </span>
-            <Link href="/login">Volver al login</Link>
+            <button
+              type="button"
+              className="erp-logout-button"
+              onClick={handleLogout}
+              disabled={closingSession}
+            >
+              Cerrar sesión
+            </button>
           </nav>
         )}
 
         <main id="main-content" className="erp-main">
+          {logoutError && (
+            <p className="erp-login-message" role="alert">
+              {logoutError}
+            </p>
+          )}
           <div className="erp-page-heading">
             <div>
               <p className="erp-eyebrow">TU LIBRERÍA, DE UN VISTAZO</p>
@@ -397,9 +449,24 @@ export default function Home() {
               </div>
               <ol className="erp-activity-list">
                 {[
-                  ["sales", "Venta registrada", "Boleta #B-002341", "Hace 5 minutos"],
-                  ["inventory", "Stock actualizado", "El Principito · +20 unidades", "Hace 18 minutos"],
-                  ["purchases", "Recepción registrada", "Editorial Planeta", "Hace 32 minutos"],
+                  [
+                    "sales",
+                    "Venta registrada",
+                    "Boleta #B-002341",
+                    "Hace 5 minutos",
+                  ],
+                  [
+                    "inventory",
+                    "Stock actualizado",
+                    "El Principito · +20 unidades",
+                    "Hace 18 minutos",
+                  ],
+                  [
+                    "purchases",
+                    "Recepción registrada",
+                    "Editorial Planeta",
+                    "Hace 32 minutos",
+                  ],
                   ["accounting", "Orden aprobada", "OC-00120", "Hace 1 hora"],
                 ].map(([icon, title, detail, time]) => (
                   <li key={title}>
