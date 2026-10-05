@@ -22,16 +22,16 @@ INSERT INTO USUARIO
 (id_usuario, id_rol, nombre, correo, password_hash, fecha_ultimo_cambio_pass, estado, fecha_creacion)
 VALUES
 (1, 1, 'Administrador General', 'admin@libreria.cl',
- '$2a$10$7EqJtq98hPqEX7fNZaFWoO5v5qV7QxN7Y2x3M3gVfF6X8J8p6L8uK',
+ '$2a$11$3tKDnehoRfJGsPcn/uyfIOpQH56dGrr.1DgIr4xdotv4t9c3Z6Ubq',
  '2026-09-20', 'activo', '2026-09-01 09:00:00'),
 (2, 2, 'Camila Compras', 'compras@libreria.cl',
- '$2a$10$7EqJtq98hPqEX7fNZaFWoO5v5qV7QxN7Y2x3M3gVfF6X8J8p6L8uK',
+ '$2a$11$3tKDnehoRfJGsPcn/uyfIOpQH56dGrr.1DgIr4xdotv4t9c3Z6Ubq',
  '2026-09-20', 'activo', '2026-09-01 09:10:00'),
 (3, 3, 'Diego Ventas', 'ventas@libreria.cl',
- '$2a$10$7EqJtq98hPqEX7fNZaFWoO5v5qV7QxN7Y2x3M3gVfF6X8J8p6L8uK',
+ '$2a$11$3tKDnehoRfJGsPcn/uyfIOpQH56dGrr.1DgIr4xdotv4t9c3Z6Ubq',
  '2026-09-20', 'activo', '2026-09-01 09:20:00'),
 (4, 4, 'Valentina Contabilidad', 'contabilidad@libreria.cl',
- '$2a$10$7EqJtq98hPqEX7fNZaFWoO5v5qV7QxN7Y2x3M3gVfF6X8J8p6L8uK',
+ '$2a$11$3tKDnehoRfJGsPcn/uyfIOpQH56dGrr.1DgIr4xdotv4t9c3Z6Ubq',
  '2026-09-20', 'activo', '2026-09-01 09:30:00');
 
 -- ================================================================

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
 import "./erp.css";
 
@@ -21,6 +22,7 @@ const books = [
   },
   { title: "El Hobbit", author: "J. R. R. Tolkien", sales: 76, cover: "rose" },
 ];
+
 const metrics = [
   {
     title: "Ventas del día",
@@ -56,6 +58,27 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  
+  // Estado para guardar el nombre y las iniciales del usuario conectado
+  const [nombreUsuario, setNombreUsuario] = useState("Administrador");
+  const [iniciales, setIniciales] = useState("AD");
+
+  useEffect(() => {
+    // Leemos el nombre guardado en el navegador tras hacer login
+    const guardado = localStorage.getItem("nombre_usuario");
+    if (guardado) {
+      setNombreUsuario(guardado);
+      
+      // Generamos las iniciales automáticamente (Ej: "Administrador General" -> "AG")
+      const partes = guardado.split(" ");
+      if (partes.length >= 2) {
+        setIniciales((partes[0][0] + partes[1][0]).toUpperCase());
+      } else {
+        setIniciales(guardado.substring(0, 2).toUpperCase());
+      }
+    }
+  }, []);
+
   const visibleBooks = books.filter((book) =>
     `${book.title} ${book.author}`
       .toLocaleLowerCase("es")
@@ -115,11 +138,13 @@ export default function Home() {
           <span className="erp-dot" />
           Todo en un mismo lugar<p>Una nueva página para tu librería.</p>
         </div>
+        
+        {/* SECCIÓN USUARIO SIDEBAR (Dinámica) */}
         <div className="erp-sidebar-user">
-          <span className="erp-avatar">AD</span>
+          <span className="erp-avatar">{iniciales}</span>
           <div>
-            <strong>Administrador</strong>
-            <small>Vista de demostración</small>
+            <strong>{nombreUsuario}</strong>
+            <small>Sesión activa</small>
           </div>
           <Link
             href="/login"
@@ -130,6 +155,7 @@ export default function Home() {
           </Link>
         </div>
       </aside>
+
       <div className="erp-workspace">
         <header className="erp-topbar">
           <div className="erp-branch">
@@ -163,12 +189,15 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* SECCIÓN PERFIL TOPBAR (Dinámica) */}
             <Link href="/login" className="erp-topbar-profile">
-              <span className="erp-avatar">AD</span>
+              <span className="erp-avatar">{iniciales}</span>
               <span>
-                Administrador<small>Volver al login</small>
+                {nombreUsuario}<small>Cerrar sesión</small>
               </span>
             </Link>
+
             <button
               className="erp-icon-button erp-mobile-menu"
               aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
@@ -180,6 +209,7 @@ export default function Home() {
             </button>
           </div>
         </header>
+
         {menuOpen && (
           <nav
             id="erp-mobile-nav"
@@ -193,11 +223,12 @@ export default function Home() {
             <Link href="/login">Volver al login</Link>
           </nav>
         )}
+
         <main id="main-content" className="erp-main">
           <div className="erp-page-heading">
             <div>
               <p className="erp-eyebrow">TU LIBRERÍA, DE UN VISTAZO</p>
-              <h1>Bienvenido a tu espacio de gestión</h1>
+              <h1>Bienvenido, {nombreUsuario}</h1>
               <p className="erp-muted">
                 Un resumen para comenzar el día con todo en orden.
               </p>
@@ -207,6 +238,7 @@ export default function Home() {
               <small>Fecha de la demostración</small>
             </span>
           </div>
+
           <div className="erp-demo-note">
             <ErpIcon name="info" />
             <span>
@@ -214,6 +246,7 @@ export default function Home() {
               demostración.
             </span>
           </div>
+
           <section
             className="erp-metrics"
             aria-label="Indicadores de la librería"
@@ -234,6 +267,7 @@ export default function Home() {
               </article>
             ))}
           </section>
+
           <div className="erp-overview-grid">
             <section className="erp-card erp-sales-panel">
               <div className="erp-section-heading">
@@ -251,7 +285,7 @@ export default function Home() {
               <div
                 className="erp-chart"
                 role="img"
-                aria-label="Ventas de ejemplo: lunes 780 mil, martes 950 mil, miércoles 1 millón 120 mil, jueves 980 mil, viernes 1 millón 480 mil, sábado 1 millón 280 mil, domingo 1 millón 250 mil pesos."
+                aria-label="Ventas de ejemplo..."
               >
                 <div className="erp-chart-scale">
                   <span>$1,5 M</span>
@@ -276,6 +310,7 @@ export default function Home() {
                 Ventas totales en pesos chilenos
               </div>
             </section>
+
             <section className="erp-card erp-orders-panel">
               <div className="erp-section-heading">
                 <div>
@@ -306,6 +341,7 @@ export default function Home() {
               </p>
             </section>
           </div>
+
           <div className="erp-details-grid">
             <section className="erp-card erp-books-panel">
               <div className="erp-section-heading">
@@ -350,6 +386,7 @@ export default function Home() {
                 </p>
               )}
             </section>
+
             <section className="erp-card erp-activity-panel">
               <div className="erp-section-heading">
                 <div>
@@ -360,24 +397,9 @@ export default function Home() {
               </div>
               <ol className="erp-activity-list">
                 {[
-                  [
-                    "sales",
-                    "Venta registrada",
-                    "Boleta #B-002341",
-                    "Hace 5 minutos",
-                  ],
-                  [
-                    "inventory",
-                    "Stock actualizado",
-                    "El Principito · +20 unidades",
-                    "Hace 18 minutos",
-                  ],
-                  [
-                    "purchases",
-                    "Recepción registrada",
-                    "Editorial Planeta",
-                    "Hace 32 minutos",
-                  ],
+                  ["sales", "Venta registrada", "Boleta #B-002341", "Hace 5 minutos"],
+                  ["inventory", "Stock actualizado", "El Principito · +20 unidades", "Hace 18 minutos"],
+                  ["purchases", "Recepción registrada", "Editorial Planeta", "Hace 32 minutos"],
                   ["accounting", "Orden aprobada", "OC-00120", "Hace 1 hora"],
                 ].map(([icon, title, detail, time]) => (
                   <li key={title}>
@@ -394,6 +416,7 @@ export default function Home() {
               </ol>
             </section>
           </div>
+
           <footer className="erp-footer">
             <span>Librería ERP</span>
             <span>Compras · Ventas · Inventario · Contabilidad</span>

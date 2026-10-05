@@ -2,3 +2,4 @@ backend/.vs/
 backend.slnx
 backend/backend.csproj.user
 frontend/package-lock.json
+backend/ConnectionStrings.config    
