@@ -2,24 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
 import "../erp.css";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   async function handleSubmit(event) {
     event.preventDefault();
     setMessage("Conectando con el servidor...");
 
-    // Preparamos los datos tal como los espera C#
     const params = new URLSearchParams();
     params.append('email', event.target.email.value);
     params.append('password', event.target.password.value);
 
     try {
-      // Llamada a tu backend de ASP.NET (Asegúrate de que Visual Studio esté en Play)
       const response = await fetch("https://localhost:44379/Login/Ingresar", {
         method: "POST",
         body: params
@@ -28,10 +28,9 @@ export default function Login() {
       const result = await response.json();
 
       if (result.success) {
-        setMessage("¡Acceso concedido! Redirigiendo al Dashboard...");
-        // Aquí puedes guardar el perfil en localStorage o usar el router de Next.js
-        // localStorage.setItem("id_rol", result.id_rol);
-        // window.location.href = "/dashboard"; 
+        setMessage("¡Acceso concedido! Redirigiendo...");
+        localStorage.setItem("id_rol", result.id_rol);
+        router.push("/"); 
       } else {
         setMessage(result.error);
       }
@@ -192,7 +191,7 @@ export default function Login() {
           </p>
           <div className="erp-login-bottom">
             <ErpIcon name="lock" />
-            <span>El acceso con credenciales aún no está habilitado.</span>
+            <span>El acceso con credenciales está conectado.</span>
           </div>
         </div>
         <footer className="erp-login-footer">
