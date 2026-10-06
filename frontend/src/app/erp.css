@@ -1340,15 +1340,9 @@
   padding: 0;
   background: transparent;
   color: inherit;
+  text-align: left;
 }
 .erp-sidebar-user .erp-logout-button {
   margin-left: auto;
   color: var(--color-text-muted);
-}
-.erp-logout-button:hover,
-.erp-profile-button:hover {
-  color: var(--color-primary);
-}
-.erp-screen button:disabled {
-  opacity: 0.65;
 }

@@ -58,6 +58,34 @@ export default function Login() {
             Conecta tus compras, ventas, inventario y contabilidad. Más tiempo
             para las historias, menos para los pendientes.
           </p>
+          <div className="erp-book-illustration" aria-hidden="true">
+            <div className="erp-illustration-circle" />
+            <div className="erp-illustrated-book book-one">
+              <span>
+                HISTORIAS
+                <br />
+                QUE CRECEN
+              </span>
+              <ErpIcon name="book" />
+            </div>
+            <div className="erp-illustrated-book book-two">
+              <span>
+                UN NUEVO
+                <br />
+                CAPÍTULO
+              </span>
+              <span className="erp-book-orbit" />
+            </div>
+            <div className="erp-illustrated-book book-three">
+              <span>
+                EL ARTE
+                <br />
+                DE LEER
+              </span>
+              <ErpIcon name="book" />
+            </div>
+            <div className="erp-book-shelf" />
+          </div>
         </div>
       </section>
       <section className="erp-login-form-panel" aria-labelledby="login-title">

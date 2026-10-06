@@ -224,6 +224,7 @@ export default function Home() {
             <button
               type="button"
               className="erp-topbar-profile erp-profile-button"
+              title={usuario.rol}
               onClick={handleLogout}
               disabled={closingSession}
               aria-label="Cerrar sesión"
@@ -232,7 +233,6 @@ export default function Home() {
               <span>
                 {nombreUsuario}
                 <small>
-                  {usuario.rol} ·{" "}
                   {closingSession ? "Cerrando…" : "Cerrar sesión"}
                 </small>
               </span>
