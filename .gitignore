@@ -2,4 +2,22 @@ backend/.vs/
 backend.slnx
 backend/backend.csproj.user
 frontend/package-lock.json
-backend/ConnectionStrings.config    
+backend/ConnectionStrings.config
+
+.vscode/
+ 
+# Carpetas de compilación de .NET (Backend)
+**/bin/
+**/obj/
+**/publish/
+ 
+# Carpetas de dependencias y build de Node/React (Frontend)
+**/node_modules/
+**/dist/
+**/build/
+ 
+# Archivos temporales y de usuario
+*.user
+*.suo
+*.userosscache
+*.log
