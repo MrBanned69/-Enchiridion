@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
 import { useAuth } from "@/components/AuthProvider";
 import "./erp.css";
+import { canOpenModule } from "@/lib/module-access";
 
 const books = [
   {
@@ -138,7 +139,6 @@ export default function Home() {
             ["purchases", "Compras"],
             ["sales", "Ventas"],
             ["inventory", "Inventario"],
-            ["accounting", "Contabilidad"],
           ].map(([icon, label]) => (
             <button
               key={label}
@@ -151,15 +151,19 @@ export default function Home() {
               <span className="erp-nav-arrow">›</span>
             </button>
           ))}
+          {canOpenModule(usuario, "contabilidad") && (
+            <Link href="/contabilidad" className="erp-nav-item">
+              <ErpIcon name="accounting" />
+              Contabilidad<span className="erp-nav-arrow">›</span>
+            </Link>
+          )}
           <p className="erp-nav-label">SISTEMA</p>
-          <button
-            className="erp-nav-item"
-            disabled
-            title="Módulo pendiente de implementación"
-          >
-            <ErpIcon name="settings" />
-            Administración
-          </button>
+          {canOpenModule(usuario, "administracion") && (
+            <Link href="/administracion" className="erp-nav-item">
+              <ErpIcon name="settings" />
+              Administración y seguridad
+            </Link>
+          )}
         </nav>
         <div className="erp-sidebar-note">
           <span className="erp-dot" />
@@ -232,9 +236,7 @@ export default function Home() {
               <span className="erp-avatar">{iniciales}</span>
               <span>
                 {nombreUsuario}
-                <small>
-                  {closingSession ? "Cerrando…" : "Cerrar sesión"}
-                </small>
+                <small>{closingSession ? "Cerrando…" : "Cerrar sesión"}</small>
               </span>
             </button>
 
@@ -257,9 +259,13 @@ export default function Home() {
             aria-label="Navegación móvil"
           >
             <Link href="/">Inicio</Link>
-            <span>
-              Compras · Ventas · Inventario · Contabilidad (próximamente)
-            </span>
+            <span>Compras · Ventas · Inventario (próximamente)</span>
+            {canOpenModule(usuario, "contabilidad") && (
+              <Link href="/contabilidad">Contabilidad</Link>
+            )}
+            {canOpenModule(usuario, "administracion") && (
+              <Link href="/administracion">Administración y seguridad</Link>
+            )}
             <button
               type="button"
               className="erp-logout-button"
