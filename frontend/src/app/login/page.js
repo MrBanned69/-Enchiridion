@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
 import { useAuth } from "@/components/AuthProvider";
 import "../erp.css";
 
+import { useRouter } from "next/navigation";
+import { loginUser, setStoredUser } from "@/lib/api";
+
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
@@ -87,6 +90,9 @@ export default function Login() {
             <div className="erp-book-shelf" />
           </div>
         </div>
+        <p className="erp-story-footer">
+          Un nuevo capítulo en la gestión de tu librería.
+        </p>
       </section>
       <section className="erp-login-form-panel" aria-labelledby="login-title">
         <div className="erp-login-form-wrap">
@@ -137,8 +143,21 @@ export default function Login() {
                 <ErpIcon name={showPassword ? "eyeOff" : "eye"} />
               </button>
             </div>
+            <p className="erp-login-help">
+              ¿Necesitas acceso? Contacta al administrador de tu librería.
+            </p>
             {message && (
-              <p id="login-message" className="erp-login-message" role="status">
+              <p
+                id="login-message"
+                className={`erp-login-message ${isError ? "is-error" : "is-success"}`}
+                style={{
+                  color: isError ? "#dc2626" : "#16a34a",
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  marginTop: "0.5rem"
+                }}
+                role="status"
+              >
                 {message}
               </p>
             )}
@@ -152,7 +171,24 @@ export default function Login() {
               <ErpIcon name="arrow" />
             </button>
           </form>
+          <div className="erp-demo-divider">
+            <span>CONOCE TU ESPACIO</span>
+          </div>
+          <Link href="/" className="erp-demo-link">
+            Explorar demo del sistema
+            <ErpIcon name="arrow" />
+          </Link>
+          <p className="erp-demo-caption">
+            Vista con acceso de invitado / demostración.
+          </p>
+          <div className="erp-login-bottom">
+            <ErpIcon name="lock" />
+            <span>Conexión activa con MySQL y Backend ASP.NET.</span>
+          </div>
         </div>
+        <footer className="erp-login-footer">
+          Librería ERP · Sistema de gestión
+        </footer>
       </section>
     </main>
   );

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
 import { useAuth } from "@/components/AuthProvider";
 import "./erp.css";
@@ -12,45 +11,45 @@ const books = [
   {
     title: "El Principito",
     author: "Antoine de Saint-Exupéry",
-    sales: 128,
+    sales: "31 en stock",
     cover: "sage",
   },
-  { title: "1984", author: "George Orwell", sales: 104, cover: "clay" },
+  { title: "1984", author: "George Orwell", sales: "14 en stock", cover: "clay" },
   {
     title: "Cien años de soledad",
     author: "Gabriel García Márquez",
-    sales: 97,
+    sales: "24 en stock",
     cover: "sand",
   },
-  { title: "El Hobbit", author: "J. R. R. Tolkien", sales: 76, cover: "rose" },
+  { title: "El Hobbit", author: "J. R. R. Tolkien", sales: "18 en stock", cover: "rose" },
 ];
 
-const metrics = [
+const fallbackMetrics = [
   {
-    title: "Ventas del día",
-    value: "$1.250.000",
-    detail: "+12,5 % respecto a ayer",
+    title: "Ventas acumuladas",
+    value: "$962.697",
+    detail: "Total registrado en sistema",
     icon: "sales",
     tone: "success",
   },
   {
     title: "Stock crítico",
-    value: "24 títulos",
+    value: "0 títulos",
     detail: "Requieren reposición",
     icon: "inventory",
-    tone: "danger",
+    tone: "neutral",
   },
   {
     title: "Cuentas por pagar",
-    value: "$850.000",
-    detail: "Próximos vencimientos",
+    value: "$1.370.000",
+    detail: "Facturas pendientes",
     icon: "accounting",
     tone: "warning",
   },
   {
     title: "Recepciones pendientes",
-    value: "7",
-    detail: "Por revisar y validar",
+    value: "2",
+    detail: "Órdenes de compra por recibir",
     icon: "purchases",
     tone: "neutral",
   },
@@ -87,7 +86,13 @@ export default function Home() {
     }
   }
 
-  const visibleBooks = books.filter((book) =>
+  const handleLogout = () => {
+    setStoredUser(null);
+    setUser(null);
+  };
+
+  const activeBooks = booksList.length > 0 ? booksList : fallbackBooks;
+  const visibleBooks = activeBooks.filter((book) =>
     `${book.title} ${book.author}`
       .toLocaleLowerCase("es")
       .includes(search.toLocaleLowerCase("es").trim()),
@@ -181,7 +186,9 @@ export default function Home() {
 
         {/* SECCIÓN USUARIO SIDEBAR (Dinámica) */}
         <div className="erp-sidebar-user">
-          <span className="erp-avatar">{iniciales}</span>
+          <span className="erp-avatar">
+            {user?.nombre ? user.nombre.slice(0, 2).toUpperCase() : "AD"}
+          </span>
           <div>
             <strong>{nombreUsuario}</strong>
             <small>{usuario.rol}</small>
@@ -198,14 +205,26 @@ export default function Home() {
           </button>
         </div>
       </aside>
-
       <div className="erp-workspace">
         <header className="erp-topbar">
           <div className="erp-branch">
             <span className="erp-muted">Sucursal</span>
             <strong>Casa Matriz</strong>
           </div>
-          <span className="erp-demo-badge">Modo demo</span>
+          <span
+            className="erp-demo-badge"
+            style={
+              isConnected
+                ? {
+                  background: "rgba(22, 163, 74, 0.15)",
+                  color: "#16a34a",
+                  borderColor: "rgba(22, 163, 74, 0.3)",
+                }
+                : {}
+            }
+          >
+            {isConnected ? "● Conectado a MySQL" : "Modo demo"}
+          </span>
           <div className="erp-topbar-actions">
             <div className="erp-notifications">
               <button
@@ -260,7 +279,6 @@ export default function Home() {
             </button>
           </div>
         </header>
-
         {menuOpen && (
           <nav
             id="erp-mobile-nav"
@@ -300,7 +318,6 @@ export default function Home() {
             </button>
           </nav>
         )}
-
         <main id="main-content" className="erp-main">
           {logoutError && (
             <p className="erp-login-message" role="alert">
@@ -310,7 +327,7 @@ export default function Home() {
           <div className="erp-page-heading">
             <div>
               <p className="erp-eyebrow">TU LIBRERÍA, DE UN VISTAZO</p>
-              <h1>Bienvenido, {nombreUsuario}</h1>
+              <h1>Bienvenido a tu espacio de gestión</h1>
               <p className="erp-muted">
                 Un resumen para comenzar el día con todo en orden.
               </p>
@@ -320,20 +337,19 @@ export default function Home() {
               <small>Fecha de la demostración</small>
             </span>
           </div>
-
           <div className="erp-demo-note">
             <ErpIcon name="info" />
             <span>
-              Vista previa del sistema. Los indicadores y registros son datos de
-              demostración.
+              {isConnected
+                ? "Sistema conectado en tiempo real: base de datos MySQL (erp_libreria) y Backend ASP.NET Web API activos."
+                : "Vista previa del sistema. Conectando con los servicios locales..."}
             </span>
           </div>
-
           <section
             className="erp-metrics"
             aria-label="Indicadores de la librería"
           >
-            {metrics.map((metric) => (
+            {metricsList.map((metric) => (
               <article key={metric.title} className="erp-card erp-metric">
                 <div className="erp-metric-heading">
                   <h2>{metric.title}</h2>
@@ -349,7 +365,6 @@ export default function Home() {
               </article>
             ))}
           </section>
-
           <div className="erp-overview-grid">
             <section className="erp-card erp-sales-panel">
               <div className="erp-section-heading">
@@ -367,7 +382,7 @@ export default function Home() {
               <div
                 className="erp-chart"
                 role="img"
-                aria-label="Ventas de ejemplo..."
+                aria-label="Ventas de ejemplo: lunes 780 mil, martes 950 mil, miércoles 1 millón 120 mil, jueves 980 mil, viernes 1 millón 480 mil, sábado 1 millón 280 mil, domingo 1 millón 250 mil pesos."
               >
                 <div className="erp-chart-scale">
                   <span>$1,5 M</span>
@@ -392,7 +407,6 @@ export default function Home() {
                 Ventas totales en pesos chilenos
               </div>
             </section>
-
             <section className="erp-card erp-orders-panel">
               <div className="erp-section-heading">
                 <div>
@@ -423,7 +437,6 @@ export default function Home() {
               </p>
             </section>
           </div>
-
           <div className="erp-details-grid">
             <section className="erp-card erp-books-panel">
               <div className="erp-section-heading">
@@ -468,7 +481,6 @@ export default function Home() {
                 </p>
               )}
             </section>
-
             <section className="erp-card erp-activity-panel">
               <div className="erp-section-heading">
                 <div>
@@ -513,7 +525,6 @@ export default function Home() {
               </ol>
             </section>
           </div>
-
           <footer className="erp-footer">
             <span>Librería ERP</span>
             <span>Compras · Ventas · Inventario · Contabilidad</span>
