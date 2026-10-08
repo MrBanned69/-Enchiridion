@@ -30,22 +30,37 @@ export default function ReporteVentasPage() {
     total_vendido: 0,
   });
 
-  const [cargandoReporte, setCargandoReporte] = useState(false);
+  const [cargandoReporte, setCargandoReporte] = useState(true);
   const [error, setError] = useState("");
+  const [filtrosAplicados, setFiltrosAplicados] = useState({ desde: "", hasta: "", revision: 0 });
 
-  async function cargarReporte() {
+  function cargarReporte() {
+    setCargandoReporte(true);
+    setError("");
+    setFiltrosAplicados((current) => ({ desde, hasta, revision: current.revision + 1 }));
+  }
+
+  function limpiarFiltros() {
+    setDesde("");
+    setHasta("");
+    setCargandoReporte(true);
+    setError("");
+    setFiltrosAplicados((current) => ({ desde: "", hasta: "", revision: current.revision + 1 }));
+  }
+
+  useEffect(() => {
+    if (loading || !usuario) return;
+    const controller = new AbortController();
+    async function consultarReporte() {
     try {
-      setCargandoReporte(true);
-      setError("");
-
       const params = new URLSearchParams();
 
-      if (desde) {
-        params.set("desde", desde);
+      if (filtrosAplicados.desde) {
+        params.set("desde", filtrosAplicados.desde);
       }
 
-      if (hasta) {
-        params.set("hasta", hasta);
+      if (filtrosAplicados.hasta) {
+        params.set("hasta", filtrosAplicados.hasta);
       }
 
       const query = params.toString();
@@ -55,10 +70,12 @@ export default function ReporteVentasPage() {
         {
           method: "GET",
           cache: "no-store",
+          signal: controller.signal,
         },
       );
 
       const result = await response.json();
+      if (controller.signal.aborted) return;
 
       if (!response.ok || !result.success) {
         throw new Error(
@@ -74,6 +91,7 @@ export default function ReporteVentasPage() {
         total_vendido: result.total_vendido || 0,
       });
     } catch (err) {
+      if (controller.signal.aborted) return;
       setReporte([]);
 
       setResumen({
@@ -86,20 +104,12 @@ export default function ReporteVentasPage() {
         err.message || "No se pudo cargar el reporte.",
       );
     } finally {
-      setCargandoReporte(false);
+      if (!controller.signal.aborted) setCargandoReporte(false);
     }
-  }
-
-  function limpiarFiltros() {
-    setDesde("");
-    setHasta("");
-  }
-
-  useEffect(() => {
-    if (!loading && usuario) {
-      cargarReporte();
     }
-  }, [loading, usuario]);
+    consultarReporte();
+    return () => controller.abort();
+  }, [loading, usuario, filtrosAplicados]);
 
   if (loading) {
     return null;
@@ -169,7 +179,7 @@ export default function ReporteVentasPage() {
           </div>
 
           {error && (
-            <div className="erp-alert erp-alert-error">
+            <div className="erp-alert erp-alert-error" role="alert">
               {error}
             </div>
           )}
@@ -182,7 +192,7 @@ export default function ReporteVentasPage() {
             </span>
 
             <strong>
-              {formatNumber(resumen.total_clientes)}
+              {cargandoReporte || error ? "—" : formatNumber(resumen.total_clientes)}
             </strong>
           </article>
 
@@ -192,7 +202,7 @@ export default function ReporteVentasPage() {
             </span>
 
             <strong>
-              {formatNumber(resumen.total_ventas)}
+              {cargandoReporte || error ? "—" : formatNumber(resumen.total_ventas)}
             </strong>
           </article>
 
@@ -202,7 +212,7 @@ export default function ReporteVentasPage() {
             </span>
 
             <strong>
-              {formatMoney(resumen.total_vendido)}
+              {cargandoReporte || error ? "—" : formatMoney(resumen.total_vendido)}
             </strong>
           </article>
         </section>
@@ -219,25 +229,26 @@ export default function ReporteVentasPage() {
           </div>
 
           {cargandoReporte ? (
-            <div className="ventas-report-empty">
+            <div className="ventas-report-empty" role="status">
               Generando reporte...
             </div>
           ) : reporte.length === 0 ? (
-            <div className="ventas-report-empty">
-              No existen ventas para el período seleccionado.
+            <div className="ventas-report-empty" role="status">
+              {error ? "El reporte no está disponible. Intenta generarlo nuevamente." : "No existen ventas para el período seleccionado."}
             </div>
           ) : (
-            <div className="ventas-report-table-wrapper">
+            <div className="ventas-report-table-wrapper" tabIndex={0} role="region" aria-label="Ranking de clientes; tabla desplazable">
               <table className="ventas-report-table">
+                <caption className="module-visually-hidden">Ranking de ventas por cliente</caption>
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>Cliente</th>
-                    <th>RUT</th>
-                    <th>Ventas</th>
-                    <th>Total vendido</th>
-                    <th>% del total</th>
-                    <th>% acumulado</th>
+                    <th scope="col">#</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">RUT</th>
+                    <th scope="col">Ventas</th>
+                    <th scope="col">Total vendido</th>
+                    <th scope="col">% del total</th>
+                    <th scope="col">% acumulado</th>
                   </tr>
                 </thead>
 

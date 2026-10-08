@@ -105,15 +105,17 @@ function navigation() {
         </Link>
       )}
 
-      <button
-        className="erp-nav-item"
-        disabled
-        title="Módulo pendiente de implementación"
-      >
-        <ErpIcon name="inventory" />
-        Inventario
-        <span className="erp-nav-arrow">›</span>
-      </button>
+      {canOpenModule(usuario, "inventario") && (
+        <Link
+          href="/Inventario"
+          className={`erp-nav-item ${module === "inventario" ? "is-active" : ""}`}
+          aria-current={module === "inventario" ? "page" : undefined}
+        >
+          <ErpIcon name="inventory" />
+          Inventario
+          <span className="erp-nav-arrow" aria-hidden="true">›</span>
+        </Link>
+      )}
 
       {canOpenModule(usuario, "contabilidad") && (
         <Link

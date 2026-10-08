@@ -1,270 +1,97 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useAuth } from "@/components/AuthProvider";
+import { canOpenModule } from "@/lib/module-access";
+import ErpModuleShell from "@/components/ErpModuleShell";
 import ErpIcon from "@/components/ErpIcon";
-import "../erp.css";
+import { money } from "@/lib/dashboard";
 
 export default function InventarioModule() {
+  const { usuario } = useAuth();
   const [search, setSearch] = useState("");
   const [inventario, setInventario] = useState([]);
-  const [nombreUsuario, setNombreUsuario] = useState("Administrador");
   const [vistaReporte, setVistaReporte] = useState(false);
   const [cargando, setCargando] = useState(true);
-  const [errorConexion, setErrorConexion] = useState(false);
+  const [error, setError] = useState("");
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    const guardado = localStorage.getItem("nombre_usuario");
-    if (guardado) setNombreUsuario(guardado);
+    if (!usuario || !canOpenModule(usuario, "inventario")) return;
+    const controller = new AbortController();
+    async function consultarInventario() {
+      try {
+        const response = await fetch("/api/inventario", { cache: "no-store", signal: controller.signal });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "No se pudo consultar el inventario.");
+        if (!Array.isArray(result)) throw new Error("El servicio no devolvió un inventario válido.");
+        if (!controller.signal.aborted) { setInventario(result); setError(""); }
+      } catch (err) {
+        if (!controller.signal.aborted) setError(err.message);
+      } finally {
+        if (!controller.signal.aborted) setCargando(false);
+      }
+    }
+    consultarInventario();
+    return () => controller.abort();
+  }, [usuario, revision]);
 
-    // Conexión al backend en C#. Recuerda cambiar el puerto "44379" si Visual Studio te asigna otro.
-    fetch("https://localhost:44379/Inventario/ListarInventario")
-      .then((respuesta) => {
-        if (!respuesta.ok) throw new Error("Error en el servidor");
-        return respuesta.json();
-      })
-      .then((datos) => {
-        if (!datos.error) {
-          setInventario(datos);
-        } else {
-          setErrorConexion(true);
-        }
-      })
-      .catch((error) => {
-        console.error("Error conectando al backend:", error);
-        setErrorConexion(true);
-      })
-      .finally(() => {
-        setCargando(false);
-      });
-  }, []);
-
-  const librosFiltrados = inventario.filter((item) =>
-    `${item.titulo} ${item.autor} ${item.categoria}`
-      .toLowerCase()
-      .includes(search.toLowerCase().trim())
-  );
-
-  const librosCriticos = inventario.filter((item) => item.stock <= item.minimo);
+  function actualizar() {
+    setCargando(true);
+    setError("");
+    setRevision((value) => value + 1);
+  }
+  const criticos = inventario.filter((item) => Number(item.stock) <= Number(item.minimo));
+  const libros = (vistaReporte ? criticos : inventario).filter((item) =>
+    `${item.isbn} ${item.titulo} ${item.autor} ${item.categoria}`.toLocaleLowerCase("es").includes(search.toLocaleLowerCase("es").trim()));
 
   return (
-    <div className="erp-screen erp-home" lang="es">
-      <aside className="erp-sidebar">
-        <Link href="/" className="erp-brand" aria-label="Librería ERP, inicio">
-          <span className="erp-brand-icon">
-            <ErpIcon name="book" />
-          </span>
-          <span>
-            Librería <b>ERP</b>
-            <small>SISTEMA DE GESTIÓN</small>
-          </span>
-        </Link>
-        <nav aria-label="Navegación principal">
-          <p className="erp-nav-label">PRINCIPAL</p>
-          <Link href="/" className="erp-nav-item">
-            <ErpIcon name="home" />
-            Inicio
-          </Link>
-          <p className="erp-nav-label">GESTIÓN</p>
-          
-          <button
-            onClick={() => setVistaReporte(false)}
-            className={`erp-nav-item ${!vistaReporte ? "is-active" : ""}`}
-            style={{ width: "100%", background: "none", border: "none", textAlign: "left", cursor: "pointer" }}
-          >
-            <ErpIcon name="inventory" />
-            Inventario General
-          </button>
-          
-          <button
-            onClick={() => setVistaReporte(true)}
-            className={`erp-nav-item ${vistaReporte ? "is-active" : ""}`}
-            style={{ width: "100%", background: "none", border: "none", textAlign: "left", cursor: "pointer" }}
-          >
-            <ErpIcon name="accounting" />
-            Reporte Crítico
-          </button>
-        </nav>
-        <div className="erp-sidebar-user">
-          <span className="erp-avatar">{(nombreUsuario || "AD").substring(0,2).toUpperCase()}</span>
-          <div>
-            <strong>{nombreUsuario}</strong>
-            <small>Sesión activa</small>
+    <ErpModuleShell module="inventario" liveData title={vistaReporte ? "Títulos que requieren reposición" : "Inventario de Libros"}
+      description={vistaReporte ? "Listado de libros cuyas existencias se encuentran en el umbral mínimo o por debajo de él." : "Supervisa los niveles de stock, estantes y precios de venta actuales."}
+      actions={<div className="inventory-heading-actions">
+        <button type="button" className="module-secondary-button" onClick={actualizar} disabled={cargando}>Actualizar</button>
+        <button type="button" className={`inventory-view-button ${vistaReporte ? "is-return" : ""}`} onClick={() => setVistaReporte((value) => !value)}>
+          {vistaReporte ? "Volver al Inventario General" : "Ver Reporte de Stock Crítico"}
+        </button>
+      </div>}>
+      <div className="inventory-screen">
+      {error && <p className="ventas-message ventas-message-error" role="alert">{error}</p>}
+      <section className="erp-card inventory-search-panel" aria-label="Buscar en inventario">
+          <label className="erp-search">
+            <ErpIcon name="search" />
+            <input type="search" aria-label="Buscar libros del inventario" placeholder="Buscar por ISBN, título, autor o categoría…" value={search} onChange={(event) => setSearch(event.target.value)} />
+          </label>
+      </section>
+      <section className={`erp-card inventory-table-panel ${vistaReporte ? "is-critical" : ""}`}>
+        {vistaReporte && <div className="inventory-report-summary">
+          <strong>Total de títulos críticos detectados: {cargando || error ? "—" : criticos.length}</strong>
+          <span>Fecha de emisión: {new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago" }).format(new Date())}</span>
+        </div>}
+        {cargando ? <p className="erp-empty" role="status">Cargando inventario…</p> : !error && <>
+          <div className="module-table-scroll" role="region" aria-label="Tabla de inventario" tabIndex={0}>
+            <table className="module-table inventory-table">
+              <caption className="module-visually-hidden">{vistaReporte ? "Reporte de stock crítico" : "Existencias y precios de libros"}</caption>
+              <thead><tr>
+                <th scope="col">ISBN</th><th scope="col">Título</th>
+                {vistaReporte ? <th scope="col">Categoría</th> : <><th scope="col">Autor</th><th scope="col">Estante</th><th scope="col" className="module-number">Precio</th></>}
+                <th scope="col" className="module-number">{vistaReporte ? "Stock Actual" : "Stock"}</th>
+                {vistaReporte && <th scope="col" className="module-number">Stock Mínimo Requerido</th>}
+                <th scope="col" className={vistaReporte ? "module-number" : undefined}>{vistaReporte ? "Déficit a Comprar" : "Estado Operativo"}</th>
+              </tr></thead>
+              <tbody>{libros.map((libro) => <tr key={libro.isbn}>
+                <td>{libro.isbn}</td><td><strong>{libro.titulo}</strong></td>
+                {vistaReporte ? <td>{libro.categoria || "—"}</td> : <><td>{libro.autor || "—"}</td><td>{libro.estante || "—"}</td><td className="module-number">{money(libro.precio)}</td></>}
+                <td className="module-number inventory-stock">{libro.stock} un.</td>{vistaReporte && <td className="module-number">{libro.minimo} un.</td>}
+                <td className={vistaReporte ? "module-number inventory-deficit" : undefined}>{vistaReporte ? `+${Math.max(0, Number(libro.minimo) - Number(libro.stock))} un. (Reponer)` :
+                  <span className={`erp-status ${Number(libro.stock) <= Number(libro.minimo) ? "danger" : "success"}`}>{Number(libro.stock) <= Number(libro.minimo) ? "Stock crítico" : "Disponible"}</span>}</td>
+              </tr>)}</tbody>
+            </table>
           </div>
-          <Link href="/login" title="Cerrar sesión">
-            <ErpIcon name="logout" />
-          </Link>
-        </div>
-      </aside>
-
-      <div className="erp-workspace">
-        <header className="erp-topbar">
-          <div className="erp-branch">
-            <span className="erp-muted">Módulo de Inventario</span>
-            <strong>{vistaReporte ? "Reporte: Stock Crítico de Títulos" : "Gestión y Control de Bodega"}</strong>
-          </div>
-          <span className="erp-demo-badge">Conectado a C#</span>
-        </header>
-
-        <main id="main-content" className="erp-main">
-          {errorConexion && (
-            <div className="erp-demo-note" style={{ backgroundColor: "#fee2e2", color: "#991b1b" }}>
-              <ErpIcon name="info" />
-              <span>No se pudo conectar con el backend de C#. Asegúrate de que Visual Studio esté ejecutándose (Play).</span>
-            </div>
-          )}
-
-          {cargando ? (
-            <div style={{ textAlign: "center", padding: "50px" }}>
-              <h2>Cargando inventario desde la base de datos...</h2>
-            </div>
-          ) : !vistaReporte ? (
-            <>
-              <div className="erp-page-heading">
-                <div>
-                  <p className="erp-eyebrow">CONTROL DE EXISTENCIAS</p>
-                  <h1>Inventario de Libros</h1>
-                  <p className="erp-muted">Supervisa los niveles de stock, estantes y precios de venta actuales.</p>
-                </div>
-                <button
-                  onClick={() => setVistaReporte(true)}
-                  className="erp-primary-button"
-                  style={{
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    padding: "10px 16px",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                  }}
-                >
-                  Ver Reporte de Stock Crítico
-                </button>
-              </div>
-
-              <section className="erp-card" style={{ padding: "20px", marginBottom: "20px" }}>
-                <label className="erp-search" style={{ maxWidth: "100%" }}>
-                  <ErpIcon name="search" />
-                  <input
-                    type="search"
-                    placeholder="Buscar por título, autor o categoría..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </label>
-              </section>
-
-              <section className="erp-card" style={{ padding: "20px", overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "2px solid #eaeaea", color: "#666", fontSize: "0.85rem" }}>
-                      <th style={{ padding: "12px" }}>ISBN</th>
-                      <th style={{ padding: "12px" }}>Título</th>
-                      <th style={{ padding: "12px" }}>Autor</th>
-                      <th style={{ padding: "12px" }}>Estante</th>
-                      <th style={{ padding: "12px" }}>Precio</th>
-                      <th style={{ padding: "12px" }}>Stock</th>
-                      <th style={{ padding: "12px" }}>Estado Operativo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {librosFiltrados.map((libro) => {
-                      const esCritico = libro.stock <= libro.minimo;
-                      return (
-                        <tr key={libro.isbn} style={{ borderBottom: "1px solid #f2f2f2" }}>
-                          <td style={{ padding: "12px", fontFamily: "monospace", fontSize: "0.85rem" }}>{libro.isbn}</td>
-                          <td style={{ padding: "12px", fontWeight: "600" }}>{libro.titulo}</td>
-                          <td style={{ padding: "12px", color: "#555" }}>{libro.autor}</td>
-                          <td style={{ padding: "12px" }}>{libro.estante}</td>
-                          <td style={{ padding: "12px" }}>${libro.precio.toLocaleString("es-CL")}</td>
-                          <td style={{ padding: "12px", fontWeight: "bold" }}>{libro.stock} un.</td>
-                          <td style={{ padding: "12px" }}>
-                            <span
-                              className={`erp-status ${esCritico ? "danger" : "success"}`}
-                              style={{ padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem" }}
-                            >
-                              {esCritico ? "Stock Crítico" : "Disponible"}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {librosFiltrados.length === 0 && !errorConexion && (
-                  <p style={{ textAlign: "center", padding: "20px", color: "#777" }}>
-                    No se registran libros con los parámetros indicados.
-                  </p>
-                )}
-              </section>
-            </>
-          ) : (
-            <>
-              <div className="erp-page-heading">
-                <div>
-                  <p className="erp-eyebrow">REPORTE OFICIAL DEL SISTEMA</p>
-                  <h1>Títulos que Requieren Reposición</h1>
-                  <p className="erp-muted">Listado de libros cuyas existencias se encuentran bajo el umbral mínimo permitido.</p>
-                </div>
-                <button
-                  onClick={() => setVistaReporte(false)}
-                  style={{
-                    backgroundColor: "#4b5563",
-                    color: "white",
-                    padding: "10px 16px",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                  }}
-                >
-                  Volver al Inventario General
-                </button>
-              </div>
-
-              <section className="erp-card" style={{ padding: "20px", overflowX: "auto" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", alignItems: "center" }}>
-                  <strong>Total de títulos críticos detectados: {librosCriticos.length}</strong>
-                  <span style={{ fontSize: "0.85rem", color: "#666" }}>Fecha de emisión: {new Date().toLocaleDateString('es-CL')}</span>
-                </div>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "2px solid #ef4444", color: "#b91c1c", fontSize: "0.85rem" }}>
-                      <th style={{ padding: "12px" }}>ISBN</th>
-                      <th style={{ padding: "12px" }}>Título</th>
-                      <th style={{ padding: "12px" }}>Categoría</th>
-                      <th style={{ padding: "12px" }}>Stock Actual</th>
-                      <th style={{ padding: "12px" }}>Stock Mínimo Requerido</th>
-                      <th style={{ padding: "12px" }}>Déficit a Comprar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {librosCriticos.map((libro) => {
-                      const deficit = libro.minimo - libro.stock;
-                      return (
-                        <tr key={libro.isbn} style={{ borderBottom: "1px solid #f2f2f2" }}>
-                          <td style={{ padding: "12px", fontFamily: "monospace" }}>{libro.isbn}</td>
-                          <td style={{ padding: "12px", fontWeight: "600" }}>{libro.titulo}</td>
-                          <td style={{ padding: "12px" }}>{libro.categoria}</td>
-                          <td style={{ padding: "12px", color: "#dc2626", fontWeight: "bold" }}>{libro.stock} un.</td>
-                          <td style={{ padding: "12px" }}>{libro.minimo} un.</td>
-                          <td style={{ padding: "12px", fontWeight: "bold", color: "#2563eb" }}>+{deficit} un. (Reponer)</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {librosCriticos.length === 0 && !errorConexion && (
-                  <p style={{ textAlign: "center", padding: "30px", color: "#16a34a", fontWeight: "600" }}>
-                    ¡Excelente noticia! No hay libros en stock crítico en este momento.
-                  </p>
-                )}
-              </section>
-            </>
-          )}
-        </main>
+          {libros.length === 0 && <p className="erp-empty" role="status">{search ? "No hay libros que coincidan con la búsqueda." : vistaReporte ? "No hay títulos en stock crítico." : "Todavía no hay libros registrados."}</p>}
+          {vistaReporte && <p className="module-caption">Se incluyen los títulos con stock igual o inferior al mínimo. El déficit indica las unidades para alcanzar ese mínimo.</p>}
+        </>}
+      </section>
       </div>
-    </div>
+    </ErpModuleShell>
   );
 }

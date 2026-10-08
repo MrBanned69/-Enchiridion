@@ -814,36 +814,374 @@
   margin: 24px 0;
   padding: 6px;
   width: fit-content;
-  border: 1px solid var(--erp-border, #e5e7eb);
+  max-width: 100%;
+  flex-wrap: wrap;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: var(--erp-surface, #ffffff);
+  background: var(--color-surface-card);
 }
 
-.ventas-subnav-link {
+.erp-screen .ventas-subnav-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
   border-radius: 8px;
-  color: var(--erp-muted-text, #64748b);
+  color: var(--color-text-muted);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 }
 
-.ventas-subnav-link:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+.erp-screen .ventas-subnav-link:hover {
+  background: var(--status-danger-bg);
+  color: var(--color-primary);
 }
 
-.ventas-subnav-link.is-active {
-  background: #0f172a;
+.erp-screen .ventas-subnav-link.is-active {
+  background: var(--color-primary);
   color: #ffffff;
 }
 
 .ventas-subnav-link span {
   font-size: 16px;
+}
+
+/* Inventario: conservar la presentación de bodega con la navegación compartida. */
+.inventory-heading-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.inventory-view-button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+.inventory-view-button:hover {
+  background: var(--color-primary-hover);
+}
+.inventory-view-button.is-return {
+  background: #4b5563;
+}
+.inventory-view-button.is-return:hover {
+  background: #374151;
+}
+.inventory-screen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+.inventory-search-panel,
+.inventory-table-panel {
+  padding: 20px;
+  min-width: 0;
+}
+.inventory-search-panel .erp-search {
+  margin-top: 0;
+  min-height: 42px;
+  width: 100%;
+}
+.inventory-screen .module-table-scroll {
+  margin-top: 0;
+}
+.inventory-report-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+.inventory-report-summary span {
+  color: #666;
+  font-size: 12px;
+}
+.erp-module-screen .inventory-table {
+  min-width: 760px;
+  font-size: 14px;
+}
+.erp-module-screen .inventory-table th,
+.erp-module-screen .inventory-table td {
+  padding: 12px;
+}
+.erp-module-screen .inventory-table thead th {
+  border-bottom: 2px solid #eaeaea;
+  background: transparent;
+  color: #666;
+  font-size: 12px;
+}
+.erp-module-screen .inventory-table td {
+  border-bottom-color: #f2f2f2;
+}
+.inventory-table td:first-child {
+  font-family: monospace;
+  font-size: 13px;
+}
+.inventory-table td:nth-child(2) {
+  min-width: 180px;
+}
+.inventory-table .inventory-stock {
+  font-weight: 700;
+}
+.inventory-table .erp-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.erp-module-screen .is-critical .inventory-table thead th {
+  border-bottom-color: #ef4444;
+  color: #b91c1c;
+}
+.is-critical .inventory-stock {
+  color: #dc2626;
+}
+.is-critical .inventory-deficit {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .inventory-heading-actions {
+    width: 100%;
+  }
+  .inventory-search-panel,
+  .inventory-table-panel {
+    padding: 18px;
+  }
+}
+
+/* Reporte de ventas: filtros, resumen y ranking. */
+.ventas-report {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.ventas-report-filters,
+.ventas-report-table-card {
+  min-width: 0;
+  padding: 24px;
+}
+.ventas-report .erp-card-header {
+  margin-bottom: 22px;
+}
+.ventas-report .erp-card-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+.ventas-report .erp-card-header p {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.ventas-report-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 16px;
+}
+.ventas-report .erp-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 7px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.ventas-report .erp-field input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface-card);
+  color: var(--color-text-main);
+  font-size: 12px;
+}
+.ventas-report-filter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ventas-report .erp-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+.ventas-report .erp-button-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+.ventas-report .erp-button-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.ventas-report .erp-button-secondary {
+  background: white;
+  color: var(--color-text-muted);
+}
+.ventas-report .erp-button-secondary:hover:not(:disabled) {
+  background: #faf8f8;
+}
+.ventas-report .erp-button:disabled {
+  opacity: 0.55;
+}
+.ventas-report .erp-alert-error {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--status-danger-bg);
+  color: var(--status-danger-text);
+  font-size: 12px;
+}
+.ventas-report-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.ventas-report-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 22px 24px;
+}
+.ventas-report-summary-label {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.ventas-report-summary-card strong {
+  font-size: clamp(21px, 2.2vw, 30px);
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ventas-report-summary-card:last-child {
+  background: #faf7f7;
+  border-color: var(--color-secondary);
+}
+.ventas-report-summary-card:last-child strong {
+  color: var(--color-primary);
+}
+.ventas-report-table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+.ventas-report-table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.ventas-report-table th,
+.ventas-report-table td {
+  padding: 15px 14px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.ventas-report-table th {
+  background: #faf8f8;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ventas-report-table tbody tr:nth-child(even) {
+  background: #fdfbfb;
+}
+.ventas-report-table tbody tr:hover {
+  background: var(--status-danger-bg);
+}
+.ventas-report-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ventas-report-table :is(th, td):nth-child(n + 4) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ventas-report-table td:nth-child(2) {
+  min-width: 180px;
+  overflow-wrap: anywhere;
+}
+.ventas-report-table td:nth-child(3) {
+  white-space: nowrap;
+}
+.ventas-report-table td:nth-child(5) {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.ventas-report-empty {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  padding: 24px;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  background: #fcfafa;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 12px;
+}
+@media (max-width: 1100px) {
+  .ventas-report-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ventas-report-filter-actions {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 700px) {
+  .ventas-report {
+    gap: 18px;
+  }
+  .ventas-report-filters,
+  .ventas-report-table-card,
+  .ventas-report-summary-card {
+    padding: 18px;
+  }
+  .ventas-report-summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .ventas-subnav {
+    width: 100%;
+  }
+  .ventas-subnav-link {
+    flex: 1;
+    justify-content: center;
+    padding: 10px;
+  }
+}
+@media (max-width: 480px) {
+  .ventas-report-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ventas-report-filter-actions .erp-button {
+    flex: 1;
+  }
 }

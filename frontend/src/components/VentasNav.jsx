@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ErpIcon from "@/components/ErpIcon";
 
 export default function VentasNav() {
   const pathname = usePathname();
@@ -15,8 +16,9 @@ export default function VentasNav() {
         className={`ventas-subnav-link ${
           !esReporte ? "is-active" : ""
         }`}
+        aria-current={!esReporte ? "page" : undefined}
       >
-        <span>🛒</span>
+        <ErpIcon name="sales" />
         Registrar venta
       </Link>
 
@@ -25,8 +27,9 @@ export default function VentasNav() {
         className={`ventas-subnav-link ${
           esReporte ? "is-active" : ""
         }`}
+        aria-current={esReporte ? "page" : undefined}
       >
-        <span>📊</span>
+        <ErpIcon name="trend" />
         Reportes
       </Link>
     </nav>

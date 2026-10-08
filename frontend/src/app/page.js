@@ -160,9 +160,9 @@ export default function Home() {
             </Link>
           )}
           {canOpenModule(usuario, "inventario") && (
-            <Link href="/inventario" className="erp-nav-item">
+            <Link href="/Inventario" className="erp-nav-item">
               <ErpIcon name="inventory" />
-              Contabilidad<span className="erp-nav-arrow">›</span>
+              Inventario<span className="erp-nav-arrow">›</span>
             </Link>
           )}
           {canOpenModule(usuario, "contabilidad") && (
@@ -281,7 +281,14 @@ export default function Home() {
                 <span className="erp-nav-arrow" aria-hidden="true">›</span>
               </Link>
             )}
-            <span>Compras · Inventario (próximamente)</span>
+            {canOpenModule(usuario, "inventario") && (
+              <Link href="/Inventario" className="erp-nav-item">
+                <ErpIcon name="inventory" />
+                Inventario
+                <span className="erp-nav-arrow" aria-hidden="true">›</span>
+              </Link>
+            )}
+            <span>Compras (próximamente)</span>
             {canOpenModule(usuario, "contabilidad") && (
               <Link href="/contabilidad" className="erp-nav-item">
                 <ErpIcon name="accounting" />
