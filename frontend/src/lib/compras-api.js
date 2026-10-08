@@ -171,3 +171,66 @@ export async function fetchLibrosParaCompra(buscar = "") {
   return Array.isArray(result) ? result : [];
 }
 
+export async function fetchRecepcionesPendientes() {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend("/api/recepciones/pendientes", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudieron obtener las órdenes pendientes de recepción.");
+  }
+
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchDetalleParaRecepcion(idOc) {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend(`/api/recepciones/orden/${idOc}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo obtener el detalle de la orden.");
+  }
+
+  return result;
+}
+
+export async function registrarRecepcion(datos) {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend("/api/recepciones", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(datos),
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo registrar la recepción.");
+  }
+
+  return result;
+}
+
+export async function fetchHistorialRecepciones({ oc, proveedor } = {}) {
+  const token = await obtenerToken();
+  const params = new URLSearchParams();
+  if (oc) params.set("oc", oc);
+  if (proveedor) params.set("proveedor", proveedor);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const { response, result } = await requestVentasBackend(`/api/recepciones/historial${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo obtener el historial de recepciones.");
+  }
+
+  return Array.isArray(result) ? result : [];
+}
+
+
