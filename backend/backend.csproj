@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -45,6 +45,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BCrypt-Net-Next, Version=4.2.0.0, Culture=neutral, PublicKeyToken=1e11be04b6288443, processorArchitecture=MSIL">
+      <HintPath>packages\BCrypt.Net-Next.4.2.0\lib\net472\BCrypt-Net-Next.dll</HintPath>
+    </Reference>
     <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
       <HintPath>packages\BouncyCastle.Cryptography.2.6.2\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
     </Reference>
@@ -65,8 +68,8 @@
       <HintPath>packages\MySql.Data.26.7.0\lib\net462\MySql.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Buffers.4.6.0\lib\net462\System.Buffers.dll</HintPath>
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Configuration.ConfigurationManager, Version=10.0.0.8, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Configuration.ConfigurationManager.10.0.8\lib\net462\System.Configuration.ConfigurationManager.dll</HintPath>
@@ -77,15 +80,15 @@
       <HintPath>packages\System.IO.Pipelines.5.0.2\lib\net461\System.IO.Pipelines.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
-    <Reference Include="System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.4.6.0\lib\net462\System.Memory.dll</HintPath>
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Numerics.Vectors.4.6.0\lib\net462\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
@@ -181,15 +184,13 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\InventarioController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
-    <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\LibrosController.cs" />
-    <Compile Include="Controllers\DashboardController.cs" />
     <Compile Include="Data\DbConnectionFactory.cs" />
-    <Compile Include="Models\LoginDto.cs" />
     <Compile Include="Models\LibroDto.cs" />
-    <Compile Include="Models\DashboardStatsDto.cs" />
     <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
+    <Compile Include="Controllers\DashboardController.cs" />
+    <Compile Include="Models\DashboardData.cs" />
     <Compile Include="Models\SessionAccess.cs" />
     <Compile Include="Models\VentaAccounting.cs" />
     <Compile Include="Global.asax.cs">

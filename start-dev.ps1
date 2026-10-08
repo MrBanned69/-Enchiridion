@@ -1,4 +1,6 @@
 # =====================================================================
+
+$ErrorActionPreference = "Stop"
 # Script de inicio para Librería ERP (Backend .NET + Frontend Next.js)
 # =====================================================================
 
@@ -7,8 +9,10 @@ $mysql = Get-Service -Name "MySQL80" -ErrorAction SilentlyContinue
 if ($mysql -and $mysql.Status -ne "Running") {
     Start-Service -Name "MySQL80"
     Write-Host "Servicio MySQL80 iniciado." -ForegroundColor Green
-} else {
+} elseif ($mysql) {
     Write-Host "Servicio MySQL80 en ejecucion." -ForegroundColor Green
+} else {
+    Write-Host "MySQL80 no está instalado con ese nombre; se usará la conexión configurada del backend." -ForegroundColor Yellow
 }
 
 $backendDir = Join-Path $PSScriptRoot "backend"
@@ -29,23 +33,24 @@ Write-Host "Backend compilado exitosamente." -ForegroundColor Green
 $backendRunning = Test-NetConnection -ComputerName 127.0.0.1 -Port 5000 -InformationLevel Quiet
 if (-not $backendRunning) {
     Write-Host "Iniciando IIS Express en http://localhost:5000..." -ForegroundColor Cyan
-    Start-Process -FilePath $iisexpress -ArgumentList "/path:`"$backendDir`"", "/port:5000" -WindowStyle Minimized
+    Start-Process -FilePath $iisexpress -ArgumentList "/path:`"$backendDir`"", "/port:5000" -WindowStyle Hidden
     Start-Sleep -Seconds 2
 } else {
     Write-Host "Backend ya esta activo en http://localhost:5000." -ForegroundColor Green
 }
 
 # 3. Iniciar Frontend Next.js en puerto 3000
+$env:ERP_BACKEND_URL = "http://localhost:5000"
 $frontendRunning = Test-NetConnection -ComputerName 127.0.0.1 -Port 3000 -InformationLevel Quiet
 if (-not $frontendRunning) {
     Write-Host "Iniciando Frontend Next.js en http://localhost:3000..." -ForegroundColor Cyan
-    Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit", "-Command", "cd `"$frontendDir`"; npm run dev"
+    Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile", "-Command", "Set-Location -LiteralPath '$($frontendDir.Replace("'", "''"))'; npm run dev" -WindowStyle Hidden
 } else {
     Write-Host "Frontend ya esta activo en http://localhost:3000." -ForegroundColor Green
 }
 
 Write-Host ""
-Write-Host "Todo el sistema esta levantado y conectado:" -ForegroundColor Green
+Write-Host "Servicios de desarrollo solicitados:" -ForegroundColor Green
 Write-Host "- Base de datos: MySQL (localhost:3306, erp_libreria)" -ForegroundColor White
 Write-Host "- Backend API:   http://localhost:5000/api" -ForegroundColor White
 Write-Host "- Frontend Web:  http://localhost:3000" -ForegroundColor White

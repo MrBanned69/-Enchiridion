@@ -1,10 +1,8 @@
 import "server-only";
+import { backendUrl } from "@/lib/backend-url";
 
 export async function requestVentasBackend(path, options = {}) {
-  const baseUrl =
-    process.env.ERP_BACKEND_URL || "https://localhost:44379";
-
-  const response = await fetch(new URL(path, baseUrl), {
+  const response = await fetch(backendUrl(path), {
     ...options,
     cache: "no-store",
     signal: AbortSignal.timeout(10000),

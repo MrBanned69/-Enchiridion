@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Web.Mvc;
+using System.Web;
+using backend.Models;
 using MySql.Data.MySqlClient;
 
 namespace backend.Controllers
@@ -11,8 +13,7 @@ namespace backend.Controllers
         [HttpGet]
         public JsonResult ListarInventario()
         {
-            // Permiso vital para que Next.js pueda leer esto
-            Response.AppendHeader("Access-Control-Allow-Origin", "*");
+            Response.Cache.SetNoStore();
 
             var inventario = new List<object>();
 
@@ -20,9 +21,11 @@ namespace backend.Controllers
             {
                 using (var conexion = new MySqlConnection(ConfigurationManager.ConnectionStrings["ConexionMySQL"].ConnectionString))
                 using (var comando = new MySqlCommand(
-                    "SELECT isbn, titulo, autor, categoria, estante, stock, stock_minimo AS minimo, precio FROM LIBRO", conexion))
+                    "SELECT isbn, titulo, autor, categoria, estante, stock_actual AS stock, stock_minimo AS minimo, precio_venta AS precio FROM LIBRO WHERE activo = TRUE ORDER BY titulo, isbn", conexion))
                 {
                     conexion.Open();
+                    SessionAccess.RequireUser(Request, conexion, "administrador", "administradora", "admin",
+                        "comprador", "compradora", "vendedor", "vendedora", "contador", "contadora");
                     using (var lector = comando.ExecuteReader())
                     {
                         while (lector.Read())
@@ -45,11 +48,18 @@ namespace backend.Controllers
                 // Retornamos los datos en formato JSON para el frontend
                 return Json(inventario, JsonRequestBehavior.AllowGet);
             }
+            catch (HttpException ex)
+            {
+                Response.StatusCode = ex.GetHttpCode();
+                Response.TrySkipIisCustomErrors = true;
+                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
             catch (Exception ex)
             {
-                // En caso de error (ej. base de datos caída), devolvemos el error
-                Response.StatusCode = 500;
-                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
+                System.Diagnostics.Trace.TraceError("Error al consultar inventario: {0}", ex.GetType().Name);
+                Response.StatusCode = 503;
+                Response.TrySkipIisCustomErrors = true;
+                return Json(new { error = "No se pudo consultar el inventario." }, JsonRequestBehavior.AllowGet);
             }
         }
     }

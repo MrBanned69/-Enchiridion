@@ -17,5 +17,9 @@ export function canOpenModule(usuario, module) {
     return ["vendedor", "vendedora"].includes(role);
   }
 
+  if (module === "inventario") {
+    return ["comprador", "compradora", "vendedor", "vendedora", "contador", "contadora"].includes(role);
+  }
+
   return false;
 }

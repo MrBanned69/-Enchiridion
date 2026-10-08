@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Web;
 using System.Web.Http;
 using backend.Data;
 using backend.Models;
@@ -14,17 +16,20 @@ namespace backend.Controllers
         [Route("")]
         public IHttpActionResult GetAll()
         {
+            HttpContext.Current.Response.Cache.SetNoStore();
             var libros = new List<LibroDto>();
             try
             {
                 using (var conn = DbConnectionFactory.CreateConnection())
                 {
+                    SessionAccess.RequireUser(new HttpRequestWrapper(HttpContext.Current.Request), conn);
                     const string sql = @"
                         SELECT l.isbn, l.titulo, l.autor, l.categoria, l.precio_venta, 
                                l.stock_actual, l.stock_minimo, l.activo, e.nombre AS editorial_nombre
                         FROM LIBRO l
                         LEFT JOIN EDITORIAL e ON l.id_editorial = e.id_editorial
-                        ORDER BY l.stock_actual DESC";
+                        WHERE l.activo = TRUE
+                        ORDER BY l.stock_actual DESC, l.isbn";
 
                     using (var cmd = new MySqlCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -48,9 +53,14 @@ namespace backend.Controllers
                 }
                 return Ok(libros);
             }
+            catch (HttpException ex)
+            {
+                return Content((HttpStatusCode)ex.GetHttpCode(), new { error = ex.Message });
+            }
             catch (Exception ex)
             {
-                return InternalServerError(ex);
+                System.Diagnostics.Trace.TraceError("Error al consultar catálogo: {0}", ex.GetType().Name);
+                return Content(HttpStatusCode.ServiceUnavailable, new { error = "No se pudo consultar el catálogo." });
             }
         }
     }

@@ -138,7 +138,7 @@ export default function Sidebar() {
         {openModule === "inventario" && (
           <div className="mb-2 ml-9 space-y-1">
             <Link
-              href="/inventario"
+              href="/Inventario"
               className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               Stock

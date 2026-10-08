@@ -28,7 +28,7 @@ namespace backend.Models
                 command.Parameters.AddWithValue("@id", userId);
                 var role = Convert.ToString(command.ExecuteScalar()).Trim().ToLowerInvariant();
                 if (string.IsNullOrEmpty(role)) throw new HttpException(401, "La sesión no es válida.");
-                if (Array.IndexOf(roles, role) < 0) throw new HttpException(403, "Tu perfil no tiene acceso a este módulo.");
+                if (roles.Length > 0 && Array.IndexOf(roles, role) < 0) throw new HttpException(403, "Tu perfil no tiene acceso a este módulo.");
             }
             return userId;
         }

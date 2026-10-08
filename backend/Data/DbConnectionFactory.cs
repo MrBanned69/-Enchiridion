@@ -11,8 +11,16 @@ namespace backend.Data
         public static MySqlConnection CreateConnection()
         {
             var conn = new MySqlConnection(ConnectionString);
-            conn.Open();
-            return conn;
+            try
+            {
+                conn.Open();
+                return conn;
+            }
+            catch
+            {
+                conn.Dispose();
+                throw;
+            }
         }
     }
 }

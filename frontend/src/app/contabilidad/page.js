@@ -9,7 +9,6 @@ import {
   money,
   dateLabel,
   normalize,
-  downloadCsv,
   totals,
 } from "@/lib/module-demo";
 
@@ -25,6 +24,8 @@ export default function Contabilidad() {
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("Todos");
   const [selected, setSelected] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
   useEffect(() => {
     if (!usuario || !canOpenModule(usuario, "contabilidad")) return;
     const controller = new AbortController();
@@ -79,31 +80,18 @@ export default function Contabilidad() {
       ).includes(normalize(search)),
   );
 
-  function exportJournal() {
-    downloadCsv(`libro-diario-${period}.csv`, [
-      [
-        "Fecha",
-        "Asiento",
-        "Origen",
-        "Documento",
-        "Cuenta",
-        "Glosa",
-        "Debe",
-        "Haber",
-      ],
-      ...visibleEntries.flatMap((entry) =>
-        entry.lines.map((line) => [
-          entry.date,
-          entry.code,
-          entry.source,
-          entry.document,
-          line.account,
-          entry.description,
-          line.debit,
-          line.credit,
-        ]),
-      ),
-    ]);
+  async function exportJournal() {
+    setExporting(true);
+    setExportError("");
+    try {
+      const { createAccountingPdf } = await import("@/lib/accounting-pdf");
+      const doc = createAccountingPdf({ entries: visibleEntries, accounts, period, periodLabel: periodInfo?.label, source, search });
+      doc.save(`balance-comprobacion-8-columnas-${period}.pdf`);
+    } catch (err) {
+      setExportError(err.message || "No se pudo generar el PDF.");
+    } finally {
+      setExporting(false);
+    }
   }
 
   const metricCards = [
@@ -168,6 +156,7 @@ export default function Contabilidad() {
       {error && (
         <p className="ventas-message ventas-message-error" role="alert">{error}</p>
       )}
+      {exportError && <p className="ventas-message ventas-message-error" role="alert">{exportError}</p>}
       {loading && <p className="erp-empty" role="status">Cargando libro diario…</p>}
       <section className="erp-metrics" aria-label="Resumen contable">
         {metricCards.map(([title, value, detail, icon, tone]) => (
@@ -202,10 +191,11 @@ export default function Contabilidad() {
             type="button"
             className="module-secondary-button"
             onClick={exportJournal}
-            disabled={loading || !!error || visibleEntries.length === 0}
+            disabled={loading || !!error || exporting || visibleEntries.length === 0}
+            title="Balance de Comprobación de 8 Columnas y detalle de los asientos seleccionados"
           >
             <ErpIcon name="arrow" />
-            Exportar CSV
+            {exporting ? "Generando PDF…" : "Descargar balance PDF"}
           </button>
           </div>
         </div>
