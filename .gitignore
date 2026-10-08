@@ -21,3 +21,4 @@ backend/ConnectionStrings.config
 *.suo
 *.userosscache
 *.log
+backend/backend.csproj
