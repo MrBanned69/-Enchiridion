@@ -17,6 +17,7 @@ export default function ErpModuleShell({
   actions,
   subnav,
   liveData = false,
+  dataLabel = liveData ? "Datos del sistema" : "Datos de prueba",
 }) {
   const router = useRouter();
   const { usuario, iniciales, loading, error, logout, refreshSession } =
@@ -81,15 +82,17 @@ function navigation() {
 
       <p className="erp-nav-label">GESTIÓN</p>
 
-      <button
-        className="erp-nav-item"
-        disabled
-        title="Módulo pendiente de implementación"
-      >
-        <ErpIcon name="purchases" />
-        Compras
-        <span className="erp-nav-arrow">›</span>
-      </button>
+      {canOpenModule(usuario, "compras") && (
+        <Link
+          href="/compras"
+          className={`erp-nav-item ${module === "compras" ? "is-active" : ""}`}
+          aria-current={module === "compras" ? "page" : undefined}
+        >
+          <ErpIcon name="purchases" />
+          Compras
+          <span className="erp-nav-arrow">›</span>
+        </Link>
+      )}
 
       {canOpenModule(usuario, "ventas") && (
         <Link
@@ -192,7 +195,7 @@ function navigation() {
             <span className="erp-muted">Sucursal</span>
             <strong>Casa Matriz</strong>
           </div>
-          <span className="erp-demo-badge">{liveData ? "Datos del sistema" : "Datos de prueba"}</span>
+          <span className="erp-demo-badge">{dataLabel}</span>
           <div className="erp-topbar-actions">
             <button
               className="erp-topbar-profile erp-profile-button"
@@ -258,7 +261,7 @@ function navigation() {
           {children}
           <footer className="erp-footer">
             <span>Librería ERP</span>
-            <span>{title} · {liveData ? "Datos del sistema" : "Datos de prueba"}</span>
+            <span>{title} · {dataLabel}</span>
           </footer>
         </main>
       </div>

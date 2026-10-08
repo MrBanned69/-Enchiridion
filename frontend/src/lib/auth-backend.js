@@ -1,9 +1,9 @@
 import "server-only";
-import { backendUrl } from "@/lib/backend-url";
 
 // Esta dirección solo se usa en el servidor de Next.js, nunca en el navegador.
 export async function requestBackend(action, options = {}) {
-  const response = await fetch(backendUrl(`/Login/${action}`), {
+  const baseUrl = process.env.ERP_BACKEND_URL || "https://localhost:44379";
+  const response = await fetch(new URL(`/Login/${action}`, baseUrl), {
     ...options,
     cache: "no-store",
     redirect: "error",

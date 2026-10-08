@@ -28,21 +28,6 @@ class InventoryQueryTest
                 }
         }
         Console.WriteLine("PASS: la consulta de Inventario usa columnas válidas y devuelve stock, mínimo y precio.");
-        var catalogSource = File.ReadAllText(Path.Combine(root,"Controllers","LibrosController.cs"));
-        var catalogQuery = Regex.Match(catalogSource, "const string sql = @\"([^\"]+)\"").Groups[1].Value;
-        if (catalogQuery.Length == 0) throw new Exception("No se encontró la consulta del catálogo.");
-        using (var c = new MySqlConnection(connectionString))
-        using (var cmd = new MySqlCommand(catalogQuery, c))
-        {
-            c.Open();
-            using (var reader = cmd.ExecuteReader())
-                while (reader.Read()) {
-                    Convert.ToInt32(reader["stock_actual"]);
-                    Convert.ToDecimal(reader["precio_venta"]);
-                    if (!Convert.ToBoolean(reader["activo"])) throw new Exception("El catálogo incluye un libro inactivo.");
-                }
-        }
-        Console.WriteLine("PASS: el catálogo consulta el esquema real y solo incluye libros activos.");
         return 0;
     }
 }

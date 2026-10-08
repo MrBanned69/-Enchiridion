@@ -144,15 +144,13 @@ export default function Home() {
             Inicio
           </Link>
           <p className="erp-nav-label">GESTIÓN</p>
-          <button
-            className="erp-nav-item"
-            disabled
-            title="Módulo pendiente de implementación"
-          >
-            <ErpIcon name="purchases" />
-            Compras
-            <span className="erp-nav-arrow">›</span>
-          </button>
+          {canOpenModule(usuario, "compras") && (
+            <Link href="/compras" className="erp-nav-item">
+              <ErpIcon name="purchases" />
+              Compras
+              <span className="erp-nav-arrow">›</span>
+            </Link>
+          )}
           {canOpenModule(usuario, "ventas") && (
             <Link href="/ventas" className="erp-nav-item">
               <ErpIcon name="sales" />
@@ -288,7 +286,13 @@ export default function Home() {
                 <span className="erp-nav-arrow" aria-hidden="true">›</span>
               </Link>
             )}
-            <span>Compras (próximamente)</span>
+            {canOpenModule(usuario, "compras") && (
+              <Link href="/compras" className="erp-nav-item">
+                <ErpIcon name="purchases" />
+                Compras
+                <span className="erp-nav-arrow" aria-hidden="true">›</span>
+              </Link>
+            )}
             {canOpenModule(usuario, "contabilidad") && (
               <Link href="/contabilidad" className="erp-nav-item">
                 <ErpIcon name="accounting" />

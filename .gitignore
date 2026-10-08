@@ -33,9 +33,3 @@ backend/bin/backend.pdb
 *.dll
 *.cache
 *.dll
-
-
-# Archivos de configuración con credenciales sensibles
-ConnectionStrings.config
-backend/ConnectionStrings.config
-*.config.user
