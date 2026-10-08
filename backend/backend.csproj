@@ -193,6 +193,8 @@
     <Compile Include="Models\OrdenCompraDto.cs" />
     <Compile Include="Controllers\RecepcionesController.cs" />
     <Compile Include="Models\RecepcionDto.cs" />
+    <Compile Include="Controllers\ReporteHistoricoController.cs" />
+    <Compile Include="Models\ReporteHistoricoDto.cs" />
     <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
