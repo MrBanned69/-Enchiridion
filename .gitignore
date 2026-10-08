@@ -22,3 +22,7 @@ backend/ConnectionStrings.config
 *.suo
 *.userosscache
 *.log
+
+.env*.local
+frontend/.env.local
+backend/backend.csproj
