@@ -40,10 +40,18 @@ namespace backend.Controllers
 
                     using (var lector = comando.ExecuteReader())
                     {
-                        if (!lector.Read() ||
-                            !BCrypt.Net.BCrypt.Verify(password, lector["password_hash"].ToString().Trim()))
+                        if (!lector.Read())
                         {
-                            return Error(401, "Correo o contraseña incorrectos.");
+                            return Error(401, "USUARIO NO ENCONTRADO");
+                        }
+
+                        var hash = lector["password_hash"].ToString().Trim();
+
+                        var passwordOk = BCrypt.Net.BCrypt.Verify(password, hash);
+
+                        if (!passwordOk)
+                        {
+                            return Error(401, "BCrypt FALLÓ");
                         }
 
                         var usuario = LeerUsuario(lector);
