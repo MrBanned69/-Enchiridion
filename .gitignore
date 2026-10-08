@@ -21,3 +21,11 @@ backend/ConnectionStrings.config
 *.suo
 *.userosscache
 *.log
+/backend/bin
+/backend/obj/Debug
+/backend/obj
+/backend/bin
+/backend/obj/Debug
+/backend/obj/Release
+/backend/obj/Debug
+/backend/obj
