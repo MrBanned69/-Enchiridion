@@ -24,3 +24,4 @@ backend/ConnectionStrings.config
 
 .env*.local
 frontend/.env.local
+backend/backend.csproj
