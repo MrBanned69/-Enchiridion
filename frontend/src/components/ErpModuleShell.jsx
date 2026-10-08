@@ -67,55 +67,82 @@ export default function ErpModuleShell({
     );
   }
 
-  function navigation() {
-    return (
-      <>
-        <p className="erp-nav-label">PRINCIPAL</p>
-        <Link href="/" className="erp-nav-item">
-          <ErpIcon name="home" />
-          Inicio
+function navigation() {
+  return (
+    <>
+      <p className="erp-nav-label">PRINCIPAL</p>
+
+      <Link href="/" className="erp-nav-item">
+        <ErpIcon name="home" />
+        Inicio
+      </Link>
+
+      <p className="erp-nav-label">GESTIÓN</p>
+
+      <button
+        className="erp-nav-item"
+        disabled
+        title="Módulo pendiente de implementación"
+      >
+        <ErpIcon name="purchases" />
+        Compras
+        <span className="erp-nav-arrow">›</span>
+      </button>
+
+      {canOpenModule(usuario, "ventas") && (
+        <Link
+          href="/ventas"
+          className={`erp-nav-item ${
+            module === "ventas" ? "is-active" : ""
+          }`}
+          aria-current={module === "ventas" ? "page" : undefined}
+        >
+          <ErpIcon name="sales" />
+          Ventas
+          <span className="erp-nav-arrow">›</span>
         </Link>
-        <p className="erp-nav-label">GESTIÓN</p>
-        {[
-          ["purchases", "Compras"],
-          ["sales", "Ventas"],
-          ["inventory", "Inventario"],
-        ].map(([icon, label]) => (
-          <button
-            className="erp-nav-item"
-            key={label}
-            disabled
-            title="Módulo pendiente de implementación"
-          >
-            <ErpIcon name={icon} />
-            {label}
-            <span className="erp-nav-arrow">›</span>
-          </button>
-        ))}
-        {canOpenModule(usuario, "contabilidad") && (
-          <Link
-            href="/contabilidad"
-            className={`erp-nav-item ${module === "contabilidad" ? "is-active" : ""}`}
-            aria-current={module === "contabilidad" ? "page" : undefined}
-          >
-            <ErpIcon name="accounting" />
-            Contabilidad
-          </Link>
-        )}
-        <p className="erp-nav-label">SISTEMA</p>
-        {canOpenModule(usuario, "administracion") && (
-          <Link
-            href="/administracion"
-            className={`erp-nav-item ${module === "administracion" ? "is-active" : ""}`}
-            aria-current={module === "administracion" ? "page" : undefined}
-          >
-            <ErpIcon name="settings" />
-            Administración y seguridad
-          </Link>
-        )}
-      </>
-    );
-  }
+      )}
+
+      <button
+        className="erp-nav-item"
+        disabled
+        title="Módulo pendiente de implementación"
+      >
+        <ErpIcon name="inventory" />
+        Inventario
+        <span className="erp-nav-arrow">›</span>
+      </button>
+
+      {canOpenModule(usuario, "contabilidad") && (
+        <Link
+          href="/contabilidad"
+          className={`erp-nav-item ${
+            module === "contabilidad" ? "is-active" : ""
+          }`}
+          aria-current={module === "contabilidad" ? "page" : undefined}
+        >
+          <ErpIcon name="accounting" />
+          Contabilidad
+        </Link>
+      )}
+
+      <p className="erp-nav-label">SISTEMA</p>
+
+      {canOpenModule(usuario, "administracion") && (
+        <Link
+          href="/administracion"
+          className={`erp-nav-item ${
+            module === "administracion" ? "is-active" : ""
+          }`}
+          aria-current={module === "administracion" ? "page" : undefined}
+        >
+          <ErpIcon name="settings" />
+          Administración y seguridad
+        </Link>
+      )}
+    </>
+  );
+}
 
   return (
     <div className="erp-screen erp-home erp-module-screen" lang="es">

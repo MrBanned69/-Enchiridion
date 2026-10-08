@@ -4,6 +4,18 @@ export function canOpenModule(usuario, module) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
-  if (["administrador", "administradora", "admin"].includes(role)) return true;
-  return module === "contabilidad" && ["contador", "contadora"].includes(role);
+
+  if (["administrador", "administradora", "admin"].includes(role)) {
+    return true;
+  }
+
+  if (module === "contabilidad") {
+    return ["contador", "contadora"].includes(role);
+  }
+
+  if (module === "ventas") {
+    return ["vendedor", "vendedora"].includes(role);
+  }
+
+  return false;
 }
