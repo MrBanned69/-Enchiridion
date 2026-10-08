@@ -1,7 +1,13 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { requestVentasBackend } from "@/lib/ventas-backend";
+import { requestVentasBackend as requestBackend } from "@/lib/ventas-backend";
+import { normalizeComprasData } from "@/lib/compras-data";
+
+async function requestVentasBackend(path, options) {
+  const { response, result } = await requestBackend(path, options);
+  return { response, result: normalizeComprasData(result) };
+}
 
 async function obtenerToken() {
   const cookieStore = await cookies();

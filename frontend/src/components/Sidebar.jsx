@@ -62,25 +62,19 @@ export default function Sidebar() {
         {openModule === "compras" && (
           <div className="mb-2 ml-9 space-y-1">
             <Link
-              href="/compras/proveedores"
-              className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
-            >
-              Proveedores
-            </Link>
-
-            <Link
-              href="/compras/ordenes"
+              href="/compras"
               className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               Órdenes de compra
             </Link>
 
             <Link
-              href="/compras/recepciones"
+              href="/compras/reportes/historico"
               className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
             >
-              Recepciones
+              Reporte histórico
             </Link>
+
           </div>
         )}
 
@@ -138,25 +132,12 @@ export default function Sidebar() {
         {openModule === "inventario" && (
           <div className="mb-2 ml-9 space-y-1">
             <Link
-              href="/Inventario"
+              href="/inventario"
               className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               Stock
             </Link>
 
-            <Link
-              href="/inventario/libros"
-              className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
-            >
-              Catálogo
-            </Link>
-
-            <Link
-              href="/inventario/kardex"
-              className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
-            >
-              Kardex
-            </Link>
           </div>
         )}
 
@@ -176,25 +157,12 @@ export default function Sidebar() {
         {openModule === "contabilidad" && (
           <div className="mb-2 ml-9 space-y-1">
             <Link
-              href="/contabilidad/cuentas"
-              className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
-            >
-              Plan de cuentas
-            </Link>
-
-            <Link
-              href="/contabilidad/diario"
+              href="/contabilidad"
               className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               Libro diario
             </Link>
 
-            <Link
-              href="/contabilidad/mayor"
-              className="block rounded px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
-            >
-              Libro mayor
-            </Link>
           </div>
         )}
 

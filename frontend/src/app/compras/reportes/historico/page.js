@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import ErpModuleShell from "@/components/ErpModuleShell";
+import ComprasNav from "@/components/ComprasNav";
 import ErpIcon from "@/components/ErpIcon";
 import { fetchProveedores, fetchReporteHistorico } from "@/lib/compras-api";
 
@@ -233,7 +234,9 @@ export default function ReporteHistoricoComprasPage() {
     <ErpModuleShell
       module="compras"
       title="Histórico de Compras por Proveedor"
-      description="Reporte consolidado de compras aprobadas y recibidas por proveedor, frecuencia y tickets promedio (RF-C09)."
+      description="Compras aprobadas y recibidas por proveedor, frecuencia y monto promedio."
+      liveData
+      subnav={<ComprasNav />}
       actions={
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <button

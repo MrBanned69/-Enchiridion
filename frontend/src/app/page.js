@@ -158,7 +158,7 @@ export default function Home() {
             </Link>
           )}
           {canOpenModule(usuario, "inventario") && (
-            <Link href="/Inventario" className="erp-nav-item">
+            <Link href="/inventario" className="erp-nav-item">
               <ErpIcon name="inventory" />
               Inventario<span className="erp-nav-arrow">›</span>
             </Link>
@@ -280,7 +280,7 @@ export default function Home() {
               </Link>
             )}
             {canOpenModule(usuario, "inventario") && (
-              <Link href="/Inventario" className="erp-nav-item">
+              <Link href="/inventario" className="erp-nav-item">
                 <ErpIcon name="inventory" />
                 Inventario
                 <span className="erp-nav-arrow" aria-hidden="true">›</span>

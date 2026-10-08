@@ -110,7 +110,7 @@ function navigation() {
 
       {canOpenModule(usuario, "inventario") && (
         <Link
-          href="/Inventario"
+          href="/inventario"
           className={`erp-nav-item ${module === "inventario" ? "is-active" : ""}`}
           aria-current={module === "inventario" ? "page" : undefined}
         >
