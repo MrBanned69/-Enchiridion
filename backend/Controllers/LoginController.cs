@@ -15,6 +15,9 @@ namespace backend.Controllers
         [HttpPost]
         public JsonResult Ingresar(string email, string password)
         {
+            // Permitir conexión con el frontend (CORS)
+            Response.AppendHeader("Access-Control-Allow-Origin", "*");
+
             Response.Cache.SetCacheability(System.Web.HttpCacheability.NoCache);
             Response.Cache.SetNoStore();
 
@@ -52,8 +55,6 @@ namespace backend.Controllers
                             1, usuario.id_usuario, ahora,
                             ahora.AddHours(DuracionSesionHoras), false, "");
 
-                        // Solo Next.js recibe este comprobante; el navegador lo guarda
-                        // en una cookie HttpOnly, sin exponerlo al código de las pantallas.
                         return Json(new
                         {
                             success = true,
@@ -74,6 +75,9 @@ namespace backend.Controllers
         [HttpGet]
         public JsonResult Sesion()
         {
+            // Permitir conexión con el frontend (CORS)
+            Response.AppendHeader("Access-Control-Allow-Origin", "*");
+
             Response.Cache.SetCacheability(System.Web.HttpCacheability.NoCache);
             Response.Cache.SetNoStore();
 
@@ -153,6 +157,7 @@ namespace backend.Controllers
 
         private JsonResult Error(int estado, string mensaje)
         {
+            Response.AppendHeader("Access-Control-Allow-Origin", "*");
             Response.StatusCode = estado;
             Response.TrySkipIisCustomErrors = true;
             return Json(new { success = false, error = mensaje }, JsonRequestBehavior.AllowGet);
