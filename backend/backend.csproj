@@ -189,6 +189,8 @@
     <Compile Include="Models\LibroDto.cs" />
     <Compile Include="Controllers\ProveedoresController.cs" />
     <Compile Include="Models\ProveedorDto.cs" />
+    <Compile Include="Controllers\OrdenesCompraController.cs" />
+    <Compile Include="Models\OrdenCompraDto.cs" />
     <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
