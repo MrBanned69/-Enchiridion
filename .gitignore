@@ -29,3 +29,11 @@ backend/ConnectionStrings.config
 /backend/obj/Release
 /backend/obj/Debug
 /backend/obj
+/.vs
+/.vs/-Enchiridion.slnx/v18
+*.cache
+/.vs/-Enchiridion.slnx/FileContentIndex
+/.vs
+/.vs/-Enchiridion.slnx
+/.vs
+/.vs
