@@ -802,3 +802,48 @@
     min-width: 0;
   }
 }
+
+/* ============================================================
+   VENTAS - NAVEGACIÓN INTERNA
+   ============================================================ */
+
+.ventas-subnav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0;
+  padding: 6px;
+  width: fit-content;
+  border: 1px solid var(--erp-border, #e5e7eb);
+  border-radius: 12px;
+  background: var(--erp-surface, #ffffff);
+}
+
+.ventas-subnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: var(--erp-muted-text, #64748b);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.ventas-subnav-link:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.ventas-subnav-link.is-active {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.ventas-subnav-link span {
+  font-size: 16px;
+}

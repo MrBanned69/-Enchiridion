@@ -15,6 +15,7 @@ export default function ErpModuleShell({
   description,
   children,
   actions,
+  subnav,
   liveData = false,
 }) {
   const router = useRouter();
@@ -242,6 +243,9 @@ function navigation() {
             </div>
             {actions}
           </div>
+
+          {subnav}
+
           {!liveData && <div className="erp-demo-note">
             <ErpIcon name="info" />
             <span>

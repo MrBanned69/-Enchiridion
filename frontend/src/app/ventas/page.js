@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import ErpModuleShell from "@/components/ErpModuleShell";
 import ErpIcon from "@/components/ErpIcon";
 import { useAuth } from "@/components/AuthProvider";
+import VentasNav from "@/components/VentasNav";
 
 function formatMoney(value) {
   return new Intl.NumberFormat("es-CL", {
@@ -334,6 +335,7 @@ export default function VentasPage() {
       liveData
       title="Ventas"
       description="Registra las ventas de la librería y gestiona sus productos."
+      subnav={<VentasNav />}
     >
       <div className="ventas-layout">
         {error && (
