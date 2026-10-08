@@ -159,15 +159,12 @@ export default function Home() {
               Ventas<span className="erp-nav-arrow">›</span>
             </Link>
           )}
-          <button
-            className="erp-nav-item"
-            disabled
-            title="Módulo pendiente de implementación"
-          >
-            <ErpIcon name="inventory" />
-            Inventario
-            <span className="erp-nav-arrow">›</span>
-          </button>
+          {canOpenModule(usuario, "inventario") && (
+            <Link href="/inventario" className="erp-nav-item">
+              <ErpIcon name="inventory" />
+              Contabilidad<span className="erp-nav-arrow">›</span>
+            </Link>
+          )}
           {canOpenModule(usuario, "contabilidad") && (
             <Link href="/contabilidad" className="erp-nav-item">
               <ErpIcon name="accounting" />
