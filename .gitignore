@@ -22,3 +22,7 @@ backend/ConnectionStrings.config
 *.userosscache
 *.log
 backend/backend.csproj
+backend/obj/Debug/backend.pdb
+backend/obj/Debug/backend.csproj.CoreCompileInputs.cache
+backend/bin/backend.dll
+backend/bin/backend.pdb
