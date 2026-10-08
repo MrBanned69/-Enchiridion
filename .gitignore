@@ -15,6 +15,7 @@ backend/ConnectionStrings.config
 **/node_modules/
 **/dist/
 **/build/
+**/.next/
  
 # Archivos temporales y de usuario
 *.user
