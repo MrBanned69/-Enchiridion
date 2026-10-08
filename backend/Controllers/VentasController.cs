@@ -695,6 +695,224 @@ namespace backend.Controllers
             }
         }
 
+        // ============================================================
+        // GET: /Ventas/ReporteClientes?desde=2026-10-01&hasta=2026-10-08
+        // Ranking Pareto de ventas por cliente
+        // ============================================================
+        [HttpGet]
+        public JsonResult ReporteClientes(string desde = null, string hasta = null)
+        {
+            try
+            {
+                DateTime? fechaDesde = null;
+                DateTime? fechaHasta = null;
+
+                if (!string.IsNullOrWhiteSpace(desde))
+                {
+                    DateTime fecha;
+
+                    if (!DateTime.TryParse(desde, out fecha))
+                    {
+                        Response.StatusCode = 400;
+                        Response.TrySkipIisCustomErrors = true;
+
+                        return Json(new
+                        {
+                            success = false,
+                            error = "La fecha desde no es válida."
+                        }, JsonRequestBehavior.AllowGet);
+                    }
+
+                    fechaDesde = fecha.Date;
+                }
+
+                if (!string.IsNullOrWhiteSpace(hasta))
+                {
+                    DateTime fecha;
+
+                    if (!DateTime.TryParse(hasta, out fecha))
+                    {
+                        Response.StatusCode = 400;
+                        Response.TrySkipIisCustomErrors = true;
+
+                        return Json(new
+                        {
+                            success = false,
+                            error = "La fecha hasta no es válida."
+                        }, JsonRequestBehavior.AllowGet);
+                    }
+
+                    fechaHasta = fecha.Date;
+                }
+
+                if (fechaDesde.HasValue &&
+                    fechaHasta.HasValue &&
+                    fechaDesde.Value > fechaHasta.Value)
+                {
+                    Response.StatusCode = 400;
+                    Response.TrySkipIisCustomErrors = true;
+
+                    return Json(new
+                    {
+                        success = false,
+                        error = "La fecha desde no puede ser posterior a la fecha hasta."
+                    }, JsonRequestBehavior.AllowGet);
+                }
+
+                var filas = new List<dynamic>();
+
+                using (var conexion = CrearConexion())
+                {
+                    conexion.Open();
+
+                    string sql = @"
+                SELECT
+                    c.id_cliente,
+                    c.rut,
+                    c.nombre,
+                    COUNT(v.id_venta) AS cantidad_ventas,
+                    COALESCE(SUM(v.total), 0) AS total_vendido
+                FROM VENTA v
+                INNER JOIN CLIENTE c
+                    ON c.id_cliente = v.id_cliente
+                WHERE v.estado = 'pagado'
+            ";
+
+                    if (fechaDesde.HasValue)
+                    {
+                        sql += @"
+                    AND v.fecha >= @desde
+                ";
+                    }
+
+                    if (fechaHasta.HasValue)
+                    {
+                        sql += @"
+                    AND v.fecha < DATE_ADD(@hasta, INTERVAL 1 DAY)
+                ";
+                    }
+
+                    sql += @"
+                GROUP BY
+                    c.id_cliente,
+                    c.rut,
+                    c.nombre
+                ORDER BY total_vendido DESC
+            ";
+
+                    using (var comando = new MySqlCommand(sql, conexion))
+                    {
+                        if (fechaDesde.HasValue)
+                        {
+                            comando.Parameters.AddWithValue(
+                                "@desde",
+                                fechaDesde.Value
+                            );
+                        }
+
+                        if (fechaHasta.HasValue)
+                        {
+                            comando.Parameters.AddWithValue(
+                                "@hasta",
+                                fechaHasta.Value
+                            );
+                        }
+
+                        using (var lector = comando.ExecuteReader())
+                        {
+                            while (lector.Read())
+                            {
+                                filas.Add(new
+                                {
+                                    id_cliente = Convert.ToInt32(
+                                        lector["id_cliente"]
+                                    ),
+                                    rut = lector["rut"].ToString(),
+                                    nombre = lector["nombre"].ToString(),
+                                    cantidad_ventas = Convert.ToInt32(
+                                        lector["cantidad_ventas"]
+                                    ),
+                                    total_vendido = Convert.ToDecimal(
+                                        lector["total_vendido"]
+                                    )
+                                });
+                            }
+                        }
+                    }
+                }
+
+                decimal totalGeneral = 0m;
+
+                foreach (var fila in filas)
+                {
+                    totalGeneral += fila.total_vendido;
+                }
+
+                decimal acumulado = 0m;
+                var reporte = new List<object>();
+
+                int posicion = 1;
+
+                foreach (var fila in filas)
+                {
+                    decimal porcentaje = totalGeneral > 0
+                        ? Math.Round(
+                            (fila.total_vendido / totalGeneral) * 100m,
+                            2
+                        )
+                        : 0m;
+
+                    acumulado += porcentaje;
+
+                    reporte.Add(new
+                    {
+                        posicion,
+                        id_cliente = fila.id_cliente,
+                        rut = fila.rut,
+                        nombre = fila.nombre,
+                        cantidad_ventas = fila.cantidad_ventas,
+                        total_vendido = fila.total_vendido,
+                        porcentaje = porcentaje,
+                        porcentaje_acumulado = Math.Round(acumulado, 2)
+                    });
+
+                    posicion++;
+                }
+
+                int totalVentas = 0;
+
+                foreach (var fila in filas)
+                {
+                    totalVentas += fila.cantidad_ventas;
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    total_clientes = reporte.Count,
+                    total_ventas = totalVentas,
+                    total_vendido = totalGeneral,
+                    reporte
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError(
+                    "Error al generar reporte de ventas por cliente: {0}",
+                    ex
+                );
+
+                Response.StatusCode = 503;
+                Response.TrySkipIisCustomErrors = true;
+
+                return Json(new
+                {
+                    success = false,
+                    error = "No se pudo generar el reporte de ventas por cliente."
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         private class DetalleCalculado
         {
             public string isbn { get; set; }
