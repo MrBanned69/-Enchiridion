@@ -74,3 +74,100 @@ export async function editarProveedor(id, datos) {
 
   return result;
 }
+
+export async function fetchOrdenesCompra({ estado, proveedor, numero } = {}) {
+  const token = await obtenerToken();
+  const params = new URLSearchParams();
+  if (estado) params.set("estado", estado);
+  if (proveedor) params.set("proveedor", proveedor);
+  if (numero) params.set("numero", numero);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const { response, result } = await requestVentasBackend(`/api/ordenes-compra${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudieron obtener las órdenes de compra.");
+  }
+
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchOrdenCompraPorId(id) {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend(`/api/ordenes-compra/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo obtener el detalle de la orden de compra.");
+  }
+
+  return result;
+}
+
+export async function crearOrdenCompra(datos) {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend("/api/ordenes-compra", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(datos),
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo crear la orden de compra.");
+  }
+
+  return result;
+}
+
+export async function aprobarOrdenCompra(id) {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend(`/api/ordenes-compra/${id}/aprobar`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo aprobar la orden de compra.");
+  }
+
+  return result;
+}
+
+export async function rechazarOrdenCompra(id) {
+  const token = await obtenerToken();
+  const { response, result } = await requestVentasBackend(`/api/ordenes-compra/${id}/rechazar`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo rechazar la orden de compra.");
+  }
+
+  return result;
+}
+
+export async function fetchLibrosParaCompra(buscar = "") {
+  const token = await obtenerToken();
+  const query = buscar ? `?buscar=${encodeURIComponent(buscar.trim())}` : "";
+  const { response, result } = await requestVentasBackend(`/api/ordenes-compra/libros${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo consultar el catálogo de libros.");
+  }
+
+  return Array.isArray(result) ? result : [];
+}
+
