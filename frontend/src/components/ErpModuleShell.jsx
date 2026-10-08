@@ -100,6 +100,7 @@ export default function ErpModuleShell({
           >
             <ErpIcon name="accounting" />
             Contabilidad
+            <span className="erp-nav-arrow" aria-hidden="true">›</span>
           </Link>
         )}
         <p className="erp-nav-label">SISTEMA</p>
@@ -111,6 +112,7 @@ export default function ErpModuleShell({
           >
             <ErpIcon name="settings" />
             Administración y seguridad
+            <span className="erp-nav-arrow" aria-hidden="true">›</span>
           </Link>
         )}
       </>

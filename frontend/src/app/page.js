@@ -162,6 +162,7 @@ export default function Home() {
             <Link href="/administracion" className="erp-nav-item">
               <ErpIcon name="settings" />
               Administración y seguridad
+              <span className="erp-nav-arrow" aria-hidden="true">›</span>
             </Link>
           )}
         </nav>
