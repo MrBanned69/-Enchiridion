@@ -15,14 +15,21 @@ backend/ConnectionStrings.config
 **/node_modules/
 **/dist/
 **/build/
+**/.next/
  
 # Archivos temporales y de usuario
 *.user
 *.suo
 *.userosscache
 *.log
+
+.env*.local
+frontend/.env.local
 backend/backend.csproj
 backend/obj/Debug/backend.pdb
 backend/obj/Debug/backend.csproj.CoreCompileInputs.cache
 backend/bin/backend.dll
 backend/bin/backend.pdb
+*.dll
+*.cache
+*.dll
