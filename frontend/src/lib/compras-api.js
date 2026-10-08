@@ -233,4 +233,24 @@ export async function fetchHistorialRecepciones({ oc, proveedor } = {}) {
   return Array.isArray(result) ? result : [];
 }
 
+export async function fetchReporteHistorico({ desde, hasta, idProveedor } = {}) {
+  const token = await obtenerToken();
+  const params = new URLSearchParams();
+  if (desde) params.set("desde", desde);
+  if (hasta) params.set("hasta", hasta);
+  if (idProveedor) params.set("id_proveedor", idProveedor);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const { response, result } = await requestVentasBackend(`/api/compras/reportes/historico${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(result.error || "No se pudo obtener el reporte histórico de compras.");
+  }
+
+  return result;
+}
+
+
 
