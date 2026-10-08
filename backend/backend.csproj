@@ -191,6 +191,8 @@
     <Compile Include="Models\ProveedorDto.cs" />
     <Compile Include="Controllers\OrdenesCompraController.cs" />
     <Compile Include="Models\OrdenCompraDto.cs" />
+    <Compile Include="Controllers\RecepcionesController.cs" />
+    <Compile Include="Models\RecepcionDto.cs" />
     <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
