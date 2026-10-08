@@ -239,6 +239,7 @@ INSERT INTO CUENTA_CONTABLE (codigo_cuenta, nombre, tipo) VALUES
 ('1.1.03', 'Clientes por cobrar', 'activo'),
 ('1.1.04', 'Inventario de libros', 'activo'),
 ('2.1.01', 'Proveedores por pagar', 'pasivo'),
+('2.1.02', 'IVA débito fiscal', 'pasivo'),
 ('3.1.01', 'Capital', 'patrimonio'),
 ('4.1.01', 'Ingresos por ventas', 'ingreso'),
 ('5.1.01', 'Costo de ventas', 'gasto'),
@@ -278,17 +279,17 @@ VALUES
 -- Venta 1
 (7, 4, '1.1.01', 61368, 0),
 (8, 4, '4.1.01', 0, 51570),
-(9, 4, '2.1.01', 0, 9798),
+(9, 4, '2.1.02', 0, 9798),
 
 -- Venta 2 a credito
 (10, 5, '1.1.03', 624155, 0),
 (11, 5, '4.1.01', 0, 524500),
-(12, 5, '2.1.01', 0, 99655),
+(12, 5, '2.1.02', 0, 99655),
 
 -- Venta 3
 (13, 6, '1.1.02', 63034, 0),
 (14, 6, '4.1.01', 0, 52970),
-(15, 6, '2.1.01', 0, 10064);
+(15, 6, '2.1.02', 0, 10064);
 
 -- ================================================================
 -- CONSULTAS RAPIDAS PARA COMPROBAR EL SEED

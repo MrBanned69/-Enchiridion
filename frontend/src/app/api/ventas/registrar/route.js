@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { requestVentasBackend } from "@/lib/ventas-backend";
 
 export async function POST(request) {
+  if (request.headers.get("origin") !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Solicitud de venta no válida." }, { status: 403 });
+  }
+  const token = request.cookies.get("erp_session")?.value;
+  if (!token) return NextResponse.json({ error: "Debes iniciar sesión." }, { status: 401 });
   try {
     const body = await request.json();
 
@@ -20,6 +25,7 @@ export async function POST(request) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       },

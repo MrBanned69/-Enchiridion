@@ -1,12 +1,11 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import ErpModuleShell from "@/components/ErpModuleShell";
 import ErpIcon from "@/components/ErpIcon";
+import { useAuth } from "@/components/AuthProvider";
+import { canOpenModule } from "@/lib/module-access";
 import {
-  accounts,
-  entries,
-  periods,
   money,
   dateLabel,
   normalize,
@@ -15,10 +14,58 @@ import {
 } from "@/lib/module-demo";
 
 export default function Contabilidad() {
-  const [period, setPeriod] = useState("2026-10");
+  const { usuario } = useAuth();
+  const [accounts, setAccounts] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [periods, setPeriods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [revision, setRevision] = useState(0);
+  const [period, setPeriod] = useState("");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("Todos");
   const [selected, setSelected] = useState(null);
+  useEffect(() => {
+    if (!usuario || !canOpenModule(usuario, "contabilidad")) return;
+    const controller = new AbortController();
+    let requestRevision = 0;
+    async function loadJournal() {
+      const currentRevision = ++requestRevision;
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch("/api/contabilidad", {
+          cache: "no-store", signal: controller.signal,
+        });
+        const result = await response.json();
+        if (!response.ok || result.success !== true) {
+          throw new Error(result.error || "No se pudo consultar el libro diario.");
+        }
+        if (controller.signal.aborted || currentRevision !== requestRevision) return;
+        setAccounts(result.accounts);
+        setEntries(result.entries);
+        setPeriods(result.periods);
+        setPeriod((current) => {
+          if (result.periods.some((item) => item.value === current)) return current;
+          const today = new Intl.DateTimeFormat("sv-SE", {
+            timeZone: "America/Santiago", year: "numeric", month: "2-digit",
+          }).format(new Date());
+          return result.periods.some((item) => item.value === today)
+            ? today : result.periods[0]?.value || "";
+        });
+      } catch (err) {
+        if (!controller.signal.aborted && currentRevision === requestRevision) setError(err.message);
+      } finally {
+        if (!controller.signal.aborted && currentRevision === requestRevision) setLoading(false);
+      }
+    }
+    loadJournal();
+    window.addEventListener("focus", loadJournal);
+    return () => {
+      controller.abort();
+      window.removeEventListener("focus", loadJournal);
+    };
+  }, [usuario, revision]);
   const periodInfo = periods.find((item) => item.value === period);
   const periodEntries = entries.filter((entry) =>
     entry.date.startsWith(period),
@@ -33,7 +80,7 @@ export default function Contabilidad() {
   );
 
   function exportJournal() {
-    downloadCsv(`libro-diario-prueba-${period}.csv`, [
+    downloadCsv(`libro-diario-${period}.csv`, [
       [
         "Fecha",
         "Asiento",
@@ -85,7 +132,7 @@ export default function Contabilidad() {
       "Diferencia debe / haber",
       money(summary.debit - summary.credit),
       summary.debit === summary.credit
-        ? "Asientos de prueba cuadrados"
+        ? "Asientos cuadrados"
         : "Revisar movimientos",
       "book",
       summary.debit === summary.credit ? "success" : "danger",
@@ -95,6 +142,7 @@ export default function Contabilidad() {
   return (
     <ErpModuleShell
       module="contabilidad"
+      liveData
       title="Contabilidad"
       description="Consulta el resumen contable y el libro diario de cada período."
       actions={
@@ -102,6 +150,7 @@ export default function Contabilidad() {
           Período contable
           <select
             value={period}
+            disabled={loading || periods.length === 0}
             onChange={(event) => {
               setPeriod(event.target.value);
               setSelected(null);
@@ -116,6 +165,10 @@ export default function Contabilidad() {
         </label>
       }
     >
+      {error && (
+        <p className="ventas-message ventas-message-error" role="alert">{error}</p>
+      )}
+      {loading && <p className="erp-empty" role="status">Cargando libro diario…</p>}
       <section className="erp-metrics" aria-label="Resumen contable">
         {metricCards.map(([title, value, detail, icon, tone]) => (
           <article className="erp-card erp-metric" key={title}>
@@ -125,7 +178,7 @@ export default function Contabilidad() {
                 <ErpIcon name={icon} />
               </span>
             </div>
-            <strong className="erp-metric-value">{value}</strong>
+            <strong className="erp-metric-value">{loading || error ? "—" : value}</strong>
             <p className={`erp-metric-detail ${tone}`}>{detail}</p>
           </article>
         ))}
@@ -136,14 +189,25 @@ export default function Contabilidad() {
             <p className="erp-eyebrow">REPORTE CONTABLE</p>
             <h2>Libro diario</h2>
           </div>
+          <div className="module-journal-actions">
+          <button
+            type="button"
+            className="module-secondary-button"
+            disabled={loading}
+            onClick={() => setRevision((value) => value + 1)}
+          >
+            Actualizar
+          </button>
           <button
             type="button"
             className="module-secondary-button"
             onClick={exportJournal}
+            disabled={loading || !!error || visibleEntries.length === 0}
           >
             <ErpIcon name="arrow" />
             Exportar CSV
           </button>
+          </div>
         </div>
         <div className="module-toolbar module-journal-toolbar">
           <label className="erp-search">
@@ -171,7 +235,7 @@ export default function Contabilidad() {
         <div className="module-table-scroll">
           <table className="module-table">
             <caption className="module-visually-hidden">
-              Asientos contables de prueba del período seleccionado
+              Asientos contables del período seleccionado
             </caption>
             <thead>
               <tr>
@@ -189,7 +253,7 @@ export default function Contabilidad() {
               </tr>
             </thead>
             <tbody>
-              {visibleEntries.map((entry) => {
+              {!loading && !error && visibleEntries.map((entry) => {
                 const value = totals([entry]);
                 return (
                   <Fragment key={entry.code}>
@@ -276,14 +340,13 @@ export default function Contabilidad() {
             </tbody>
           </table>
         </div>
-        {visibleEntries.length === 0 && (
+        {!loading && !error && visibleEntries.length === 0 && (
           <p className="erp-empty" role="status">
             No hay asientos que coincidan con los filtros.
           </p>
         )}
         <p className="module-caption">
-          {periodInfo.label} · {periodInfo.status} · {visibleEntries.length} de{" "}
-          {periodEntries.length} asientos de prueba. Importes en pesos chilenos.
+          {periodInfo?.label || "Sin período"} · {periodInfo?.status || ""} · {loading || error ? "—" : `${visibleEntries.length} de ${periodEntries.length}`} asientos. Importes en pesos chilenos.
         </p>
       </section>
     </ErpModuleShell>

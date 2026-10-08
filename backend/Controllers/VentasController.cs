@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Web.Mvc;
 using MySql.Data.MySqlClient;
 using System.Data;
+using System.Web;
 using backend.Models;
 
 namespace backend.Controllers
@@ -216,11 +217,22 @@ namespace backend.Controllers
                 });
             }
 
+            var formaPago = string.IsNullOrWhiteSpace(venta.forma_pago)
+                ? "efectivo" : venta.forma_pago.Trim().ToLowerInvariant();
+            if (formaPago != "efectivo" && formaPago != "tarjeta" && formaPago != "transferencia")
+            {
+                Response.StatusCode = 400;
+                Response.TrySkipIisCustomErrors = true;
+                return Json(new { success = false, error = "La forma de pago no es válida." });
+            }
+
             try
             {
                 using (var conexion = CrearConexion())
                 {
                     conexion.Open();
+                    venta.id_usuario = SessionAccess.RequireUser(Request, conexion,
+                        "administrador", "administradora", "admin", "vendedor", "vendedora");
 
                     using (var transaccion = conexion.BeginTransaction())
                     {
@@ -296,6 +308,7 @@ namespace backend.Controllers
                             }
 
                             decimal neto = 0m;
+                            decimal costo = 0m;
 
                             var detallesVenta = new List<DetalleCalculado>();
 
@@ -323,6 +336,7 @@ namespace backend.Controllers
                                 using (var comandoLibro = new MySqlCommand(
                                     @"SELECT titulo,
                                      precio_venta,
+                                     costo_unitario,
                                      stock_actual
                               FROM LIBRO
                               WHERE isbn = @isbn
@@ -384,6 +398,7 @@ namespace backend.Controllers
                                             precio * detalle.cantidad;
 
                                         neto += subtotal;
+                                        costo += Convert.ToDecimal(lector["costo_unitario"]) * detalle.cantidad;
 
                                         detallesVenta.Add(new DetalleCalculado
                                         {
@@ -465,9 +480,7 @@ namespace backend.Controllers
 
                                 comandoVenta.Parameters.AddWithValue(
                                     "@forma_pago",
-                                    string.IsNullOrWhiteSpace(venta.forma_pago)
-                                        ? "efectivo"
-                                        : venta.forma_pago.Trim()
+                                    formaPago
                                 );
 
                                 comandoVenta.Parameters.AddWithValue(
@@ -632,15 +645,18 @@ namespace backend.Controllers
                             }
 
                             // ====================================================
-                            // 7. Confirmar toda la operación
+                            // 7. Registrar el asiento antes de confirmar la operación
                             // ====================================================
+                            int idAsiento = VentaAccounting.Register(conexion, transaccion,
+                                idVenta, venta.id_usuario, formaPago, neto, iva, total, costo);
                             transaccion.Commit();
 
                             return Json(new
                             {
                                 success = true,
-                                mensaje = "Venta registrada correctamente.",
+                                mensaje = "Venta registrada correctamente en ventas y contabilidad.",
                                 id_venta = idVenta,
+                                id_asiento = idAsiento,
                                 neto,
                                 iva,
                                 descuento,
@@ -654,6 +670,12 @@ namespace backend.Controllers
                         }
                     }
                 }
+            }
+            catch (HttpException ex)
+            {
+                Response.StatusCode = ex.GetHttpCode();
+                Response.TrySkipIisCustomErrors = true;
+                return Json(new { success = false, error = ex.Message });
             }
             catch (Exception ex)
             {

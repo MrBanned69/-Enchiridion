@@ -239,22 +239,23 @@ export function normalize(value) {
 
 export function totals(selectedEntries) {
   const lines = selectedEntries.flatMap((entry) => entry.lines);
+  const round = (value) => Math.round(value * 100) / 100;
   const balance = (code) =>
     lines
       .filter((line) => line.account === code)
-      .reduce((sum, line) => sum + line.credit - line.debit, 0);
-  const debit = lines.reduce((sum, line) => sum + line.debit, 0);
-  const credit = lines.reduce((sum, line) => sum + line.credit, 0);
+      .reduce((sum, line) => round(sum + line.credit - line.debit), 0);
+  const debit = lines.reduce((sum, line) => round(sum + line.debit), 0);
+  const credit = lines.reduce((sum, line) => round(sum + line.credit), 0);
   const income = balance("4.1.01");
   const costs = -balance("5.1.01");
-  const expenses = -balance("5.2.01");
+  const expenses = round(-balance("5.2.01") - balance("5.1.02"));
   return {
     debit,
     credit,
     income,
     costs,
     expenses,
-    result: income - costs - expenses,
+    result: round(income - costs - expenses),
   };
 }
 

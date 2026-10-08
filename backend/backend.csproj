@@ -185,6 +185,9 @@
     <Compile Include="Controllers\InventarioController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\VentasController.cs" />
+    <Compile Include="Controllers\ContabilidadController.cs" />
+    <Compile Include="Models\SessionAccess.cs" />
+    <Compile Include="Models\VentaAccounting.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

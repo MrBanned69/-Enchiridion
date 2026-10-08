@@ -304,7 +304,7 @@ export default function VentasPage() {
       setMensaje(
         `Venta #${result.id_venta} registrada correctamente por ${formatMoney(
           result.total,
-        )}.`,
+        )}. Asiento contable #${result.id_asiento}.`,
       );
 
       setDetalles([]);
@@ -331,6 +331,7 @@ export default function VentasPage() {
   return (
     <ErpModuleShell
       module="ventas"
+      liveData
       title="Ventas"
       description="Registra las ventas de la librería y gestiona sus productos."
     >

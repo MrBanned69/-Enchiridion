@@ -135,22 +135,30 @@ export default function Home() {
             Inicio
           </Link>
           <p className="erp-nav-label">GESTIÓN</p>
-          {[
-            ["purchases", "Compras"],
-            ["sales", "Ventas"],
-            ["inventory", "Inventario"],
-          ].map(([icon, label]) => (
-            <button
-              key={label}
-              className="erp-nav-item"
-              disabled
-              title="Módulo pendiente de implementación"
-            >
-              <ErpIcon name={icon} />
-              {label}
-              <span className="erp-nav-arrow">›</span>
-            </button>
-          ))}
+          <button
+            className="erp-nav-item"
+            disabled
+            title="Módulo pendiente de implementación"
+          >
+            <ErpIcon name="purchases" />
+            Compras
+            <span className="erp-nav-arrow">›</span>
+          </button>
+          {canOpenModule(usuario, "ventas") && (
+            <Link href="/ventas" className="erp-nav-item">
+              <ErpIcon name="sales" />
+              Ventas<span className="erp-nav-arrow">›</span>
+            </Link>
+          )}
+          <button
+            className="erp-nav-item"
+            disabled
+            title="Módulo pendiente de implementación"
+          >
+            <ErpIcon name="inventory" />
+            Inventario
+            <span className="erp-nav-arrow">›</span>
+          </button>
           {canOpenModule(usuario, "contabilidad") && (
             <Link href="/contabilidad" className="erp-nav-item">
               <ErpIcon name="accounting" />
@@ -260,12 +268,27 @@ export default function Home() {
             aria-label="Navegación móvil"
           >
             <Link href="/">Inicio</Link>
-            <span>Compras · Ventas · Inventario (próximamente)</span>
+            {canOpenModule(usuario, "ventas") && (
+              <Link href="/ventas" className="erp-nav-item">
+                <ErpIcon name="sales" />
+                Ventas
+                <span className="erp-nav-arrow" aria-hidden="true">›</span>
+              </Link>
+            )}
+            <span>Compras · Inventario (próximamente)</span>
             {canOpenModule(usuario, "contabilidad") && (
-              <Link href="/contabilidad">Contabilidad</Link>
+              <Link href="/contabilidad" className="erp-nav-item">
+                <ErpIcon name="accounting" />
+                Contabilidad
+                <span className="erp-nav-arrow" aria-hidden="true">›</span>
+              </Link>
             )}
             {canOpenModule(usuario, "administracion") && (
-              <Link href="/administracion">Administración y seguridad</Link>
+              <Link href="/administracion" className="erp-nav-item">
+                <ErpIcon name="settings" />
+                Administración y seguridad
+                <span className="erp-nav-arrow" aria-hidden="true">›</span>
+              </Link>
             )}
             <button
               type="button"

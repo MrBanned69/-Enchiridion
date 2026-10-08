@@ -15,6 +15,7 @@ export default function ErpModuleShell({
   description,
   children,
   actions,
+  liveData = false,
 }) {
   const router = useRouter();
   const { usuario, iniciales, loading, error, logout, refreshSession } =
@@ -123,6 +124,7 @@ function navigation() {
         >
           <ErpIcon name="accounting" />
           Contabilidad
+          <span className="erp-nav-arrow" aria-hidden="true">›</span>
         </Link>
       )}
 
@@ -138,6 +140,7 @@ function navigation() {
         >
           <ErpIcon name="settings" />
           Administración y seguridad
+          <span className="erp-nav-arrow" aria-hidden="true">›</span>
         </Link>
       )}
     </>
@@ -186,7 +189,7 @@ function navigation() {
             <span className="erp-muted">Sucursal</span>
             <strong>Casa Matriz</strong>
           </div>
-          <span className="erp-demo-badge">Datos de prueba</span>
+          <span className="erp-demo-badge">{liveData ? "Datos del sistema" : "Datos de prueba"}</span>
           <div className="erp-topbar-actions">
             <button
               className="erp-topbar-profile erp-profile-button"
@@ -239,17 +242,17 @@ function navigation() {
             </div>
             {actions}
           </div>
-          <div className="erp-demo-note">
+          {!liveData && <div className="erp-demo-note">
             <ErpIcon name="info" />
             <span>
               Vista de consulta con datos de prueba. Los registros mostrados no
               modifican la sesión ni las operaciones del sistema.
             </span>
-          </div>
+          </div>}
           {children}
           <footer className="erp-footer">
             <span>Librería ERP</span>
-            <span>{title} · Datos de prueba</span>
+            <span>{title} · {liveData ? "Datos del sistema" : "Datos de prueba"}</span>
           </footer>
         </main>
       </div>
