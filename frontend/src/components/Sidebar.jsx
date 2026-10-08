@@ -181,7 +181,7 @@ export default function Sidebar() {
 
       {/* Usuario */}
       <div className="shrink-0 border-t border-slate-800 p-4">
-        <div className="flex items-center gap-3">
+        <Link href="/mi-perfil" className="flex items-center gap-3 rounded-lg border border-slate-700 p-3 hover:bg-slate-800">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold">
             {iniciales || "—"}
           </div>
@@ -192,8 +192,9 @@ export default function Sidebar() {
             </p>
 
             <p className="text-xs text-slate-400">{usuario?.rol || ""}</p>
+            <p className="mt-1 text-xs font-semibold text-white">Mi perfil →</p>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   );

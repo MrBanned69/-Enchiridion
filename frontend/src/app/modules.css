@@ -1185,3 +1185,72 @@
     flex: 1;
   }
 }
+.erp-module-screen .module-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 18px;
+  border: 1px solid var(--color-primary);
+  border-radius: 7px;
+  background: var(--color-primary);
+  color: white;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms;
+}
+.erp-module-screen .module-primary-button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.erp-module-screen .module-primary-button .erp-icon { width: 16px; height: 16px; }
+.erp-module-screen .module-primary-button:disabled { opacity: .5; cursor: not-allowed; }
+.erp-module-screen .module-secondary-button { justify-content: center; min-height: 40px; cursor: pointer; }
+.erp-module-screen .module-primary-button:focus-visible,
+.erp-module-screen .module-secondary-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.account-heading-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.account-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  align-items: end;
+  margin-top: 24px;
+}
+.account-form label { display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 600; min-width: 0; }
+.account-form input, .account-form select {
+  width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--color-border);
+  border-radius: 7px; background: var(--color-surface-card, white); color: var(--color-text-main);
+  font: inherit; font-size: 13px; font-weight: 400;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.account-form input:focus-visible, .account-form select:focus-visible {
+  outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px #9b444418;
+}
+.account-form input[readonly] { background: #faf8f8; color: var(--color-text-muted); }
+.account-form label small { color: var(--color-text-muted); font-size: 11px; font-weight: 400; }
+.account-form-footer { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--color-border); }
+.account-form-hint { color: var(--color-text-muted); font-size: 11px; max-width: 440px; line-height: 1.6; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 8px; min-width: 160px; }
+.account-actions .module-secondary-button { min-height: 34px; padding: 7px 10px; }
+.erp-module-screen .account-danger-button { color: var(--status-danger-text); border-color: #e4bebe; }
+.account-user-cell strong { display: block; font-weight: 600; }
+.account-user-cell small { display: block; margin-top: 4px; color: var(--color-text-muted); font-size: 11px; }
+.account-message { padding: 12px 16px; margin-bottom: 20px !important; border: 1px solid #b9d4bf; border-radius: 8px; background: var(--status-success-bg); color: var(--status-success-text); font-size: 12px; }
+.account-profile-heading { margin-bottom: 20px; }
+.account-loyalty, .customer-catalog-count { padding: 7px 12px; border-radius: 20px; background: var(--status-danger-bg); color: var(--color-primary); font-size: 11px; white-space: nowrap; }
+.customer-catalog .erp-search { max-width: 620px; min-height: 44px; }
+.customer-book-price { white-space: nowrap; color: var(--color-primary); font-weight: 600; }
+@media (max-width: 700px) {
+  .account-form { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .account-form-footer { flex-direction: column; align-items: stretch; }
+  .account-form-footer .module-primary-button { width: 100%; }
+  .account-heading-actions { width: 100%; }
+  .account-heading-actions button { flex: 1; }
+  .account-profile-heading, .customer-catalog .erp-section-heading { align-items: flex-start; flex-wrap: wrap; }
+}

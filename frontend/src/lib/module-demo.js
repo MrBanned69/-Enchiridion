@@ -1,4 +1,4 @@
-import { createCsv } from "./csv";
+
 
 export const periods = [
   { value: "2026-10", label: "Octubre 2026", status: "Abierto" },
@@ -257,17 +257,4 @@ export function totals(selectedEntries) {
     expenses,
     result: round(income - costs - expenses),
   };
-}
-
-export function downloadCsv(filename, rows) {
-  const url = URL.createObjectURL(
-    new Blob([createCsv(rows)], { type: "text/csv;charset=utf-8" }),
-  );
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

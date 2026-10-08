@@ -1,5 +1,44 @@
 # Integración de Ventas y Contabilidad
 
+## Usuarios y clientes
+
+Administración consulta usuarios reales y permite crear, editar, asignar perfiles,
+restablecer contraseñas, desactivar y reactivar cuentas. Solo los administradores
+pueden usar estos endpoints. La desactivación conserva las referencias históricas.
+No se permite quitar el acceso a la propia cuenta administradora ni al último
+administrador activo.
+
+El registro público crea exclusivamente cuentas Cliente y una ficha en CLIENTE
+con nombre, RUT validado y tipo Persona. Solo Administración puede cambiar el tipo
+a Persona, Colegio o Empresa. Ambas se guardan en una
+transacción. Un RUT ya registrado requiere revisión administrativa; el registro
+público no se apropia de fichas existentes. Catálogo y Mi perfil son los únicos
+módulos visibles para clientes. Actualizar datos personales exige la contraseña
+actual y usa siempre la identidad de la sesión.
+
+Las instalaciones existentes requieren las migraciones de MySql/migrations.
+La migración local puede aplicarse con la prueba de integración en modo --migrate;
+ese modo crea el rol Cliente si falta y agrega el vínculo USUARIO.id_cliente solo
+si no existe. No modifica las cuentas existentes.
+
+```powershell
+& backend/bin/roslyn/csc.exe /nologo /target:exe /out:backend/bin/UserManagementIntegrationTest.exe /reference:backend/bin/backend.dll /reference:backend/bin/MySql.Data.dll /reference:backend/bin/Newtonsoft.Json.dll /reference:System.Data.dll /reference:System.Web.dll backend/tests/UserManagementIntegrationTest.cs
+& backend/bin/UserManagementIntegrationTest.exe (Resolve-Path backend).Path --migrate
+# Con backend en http://localhost:5000 y frontend en http://localhost:3000:
+& backend/bin/UserManagementIntegrationTest.exe (Resolve-Path backend).Path
+```
+
+La prueba crea cuentas y fichas de cliente temporales con correos exclusivos,
+verifica registro, edición, desactivación, reactivación, cookies y aislamiento
+entre perfiles; después elimina únicamente esos registros de prueba. Los datos
+de la librería permanecen intactos.
+
+Pruebas de rutas y permisos del frontend, desde frontend:
+
+```powershell
+node --experimental-vm-modules --test tests/user-management.test.cjs tests/auth-route.test.cjs
+```
+
 Cada nueva venta genera un asiento con referencia a `VENTA.id_venta`, dentro de la misma transacción que los detalles y el movimiento de stock. Se debita Caja para efectivo o Banco para tarjeta/transferencia; se acreditan ingresos e IVA débito fiscal. El costo de los libros se debita a Costo de ventas y se acredita a Inventario, con el costo vigente al registrar la venta.
 
 El período se determina por la fecha guardada en MySQL. Si no existe, se crea abierto; si está cerrado, se rechaza la operación completa. Las cuentas necesarias se crean si faltan, conservando las existentes.

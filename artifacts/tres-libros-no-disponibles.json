@@ -1,0 +1,22 @@
+{
+  "cambios": [
+    {
+      "isbn": "9781491950357",
+      "titulo": "Fluent Python",
+      "stockAnterior": 7,
+      "stockActual": 0
+    },
+    {
+      "isbn": "9781492055020",
+      "titulo": "Learning Python",
+      "stockAnterior": 9,
+      "stockActual": 0
+    }
+  ],
+  "sinStock": [
+    "Introduction to Algorithms",
+    "Fluent Python",
+    "Learning Python"
+  ],
+  "fechaUTC": "2026-10-08T14:32:46.0815907Z"
+}

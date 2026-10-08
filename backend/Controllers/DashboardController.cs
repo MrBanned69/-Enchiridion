@@ -18,7 +18,7 @@ namespace backend.Controllers
                 using (var connection = new MySqlConnection(ConfigurationManager.ConnectionStrings["ConexionMySQL"].ConnectionString))
                 {
                     connection.Open();
-                    SessionAccess.RequireUser(Request, connection);
+                    SessionAccess.RequireUser(Request, connection, UserAccounts.StaffRoles);
                     var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
                         TimeZoneInfo.FindSystemTimeZoneById("Pacific SA Standard Time")).Date;
                     return Json(DashboardData.Load(connection, today), JsonRequestBehavior.AllowGet);

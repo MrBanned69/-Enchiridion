@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import ErpIcon from "@/components/ErpIcon";
 import { useAuth } from "@/components/AuthProvider";
 import "./erp.css";
-import { canOpenModule } from "@/lib/module-access";
+import { canOpenModule, isCliente } from "@/lib/module-access";
 import { money, comparison, localDateLabel, activityDate, chartMaximum } from "@/lib/dashboard";
 
 export default function Home() {
@@ -25,7 +25,7 @@ export default function Home() {
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    if (!usuario) return;
+    if (!usuario || isCliente(usuario)) return;
     const controller = new AbortController();
     let requestRevision = 0;
     async function loadDashboard() {
@@ -60,6 +60,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && !usuario && !error) router.replace("/login");
+    if (!loading && isCliente(usuario)) router.replace("/catalogo");
   }, [loading, usuario, error, router]);
 
   const nombreUsuario = usuario?.nombre || "";
@@ -102,7 +103,7 @@ export default function Home() {
       .includes(search.toLocaleLowerCase("es").trim()),
   );
 
-  if (loading || !usuario || error) {
+  if (loading || !usuario || error || isCliente(usuario)) {
     return (
       <main className="erp-screen erp-auth-state" lang="es">
         <p role="status">{error || "Comprobando tu sesión…"}</p>
@@ -185,11 +186,10 @@ export default function Home() {
 
         {/* SECCIÓN USUARIO SIDEBAR (Dinámica) */}
         <div className="erp-sidebar-user">
-          <span className="erp-avatar">{iniciales}</span>
-          <div>
-            <strong>{nombreUsuario}</strong>
-            <small>{usuario.rol}</small>
-          </div>
+          <Link href="/mi-perfil" className="erp-sidebar-profile">
+            <span className="erp-avatar">{iniciales}</span>
+            <span className="erp-sidebar-profile-info"><strong>{nombreUsuario}</strong><small>{usuario.rol}</small><span className="erp-sidebar-profile-label">Mi perfil <ErpIcon name="arrow" /></span></span>
+          </Link>
           <button
             type="button"
             className="erp-logout-button"

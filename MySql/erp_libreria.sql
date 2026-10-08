@@ -127,6 +127,11 @@ CREATE TABLE CLIENTE (
     puntos_fidelidad  INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
 
+ALTER TABLE USUARIO
+  ADD COLUMN id_cliente INT NULL,
+  ADD CONSTRAINT uq_usuario_cliente UNIQUE (id_cliente),
+  ADD CONSTRAINT fk_usuario_cliente FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente);
+
 CREATE TABLE PEDIDO_VENTA (
     id_pedido       INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente      INT NOT NULL,

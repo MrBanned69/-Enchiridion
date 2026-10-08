@@ -90,6 +90,8 @@ const paths = {
     </>
   ),
   arrow: <path d="M4 12h16m-6-6 6 6-6 6" />,
+  plus: <path d="M12 5v14M5 12h14" />,
+  user: <><circle cx="12" cy="8" r="4" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></>,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
 };
 

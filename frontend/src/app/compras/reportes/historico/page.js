@@ -41,6 +41,8 @@ export default function ReporteHistoricoComprasPage() {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [exportando, setExportando] = useState(false);
+  const [errorExportacion, setErrorExportacion] = useState("");
   const [rangoMostrado, setRangoMostrado] = useState({ desde: "", hasta: "" });
 
   // Redirección si no hay sesión
@@ -102,7 +104,8 @@ export default function ReporteHistoricoComprasPage() {
   // Carga inicial automática con valores por defecto
   useEffect(() => {
     if (!usuario) return;
-    consultarReporte(desde, hasta, idProveedor);
+    const timer = setTimeout(() => consultarReporte(getHace12MesesISO(), getHoyISO(), ""), 0);
+    return () => clearTimeout(timer);
   }, [usuario, consultarReporte]);
 
   // Manejar clic en "Generar"
@@ -111,70 +114,20 @@ export default function ReporteHistoricoComprasPage() {
     consultarReporte(desde, hasta, idProveedor);
   };
 
-  // Exportar CSV con UTF-8 BOM
-  const exportarCSV = () => {
-    if (!reporte || !reporte.proveedores || reporte.proveedores.length === 0) {
-      return;
+  const exportarPDF = async () => {
+    if (!reporte?.proveedores?.length || exportando) return;
+    setExportando(true);
+    setErrorExportacion("");
+    try {
+      const { createPurchasesPdf } = await import("@/lib/purchases-pdf");
+      const doc = createPurchasesPdf({ report: reporte, from: rangoMostrado.desde, to: rangoMostrado.hasta });
+      doc.save(`historico_compras_proveedor_${getHoyISO()}.pdf`);
+    } catch (err) {
+      setErrorExportacion(err.message || "No se pudo generar el PDF.");
+    } finally {
+      setExportando(false);
     }
-
-    const encabezados = [
-      "ID Proveedor",
-      "Razón Social",
-      "N° Órdenes",
-      "Unidades Compradas",
-      "Monto Acumulado (CLP)",
-      "Ticket Promedio (CLP)",
-      "Primera Compra",
-      "Última Compra",
-      "Órdenes por Mes",
-      "Días Promedio Entre Órdenes",
-    ];
-
-    const escapeCSV = (val) => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    };
-
-    const filasCSV = reporte.proveedores.map((fila) => {
-      const id = fila.id_proveedor ?? fila.idProveedor;
-      const razon = fila.razon_social ?? fila.razonSocial;
-      const ordenes = fila.numero_ordenes ?? fila.numeroOrdenes;
-      const unidades = fila.unidades_compradas ?? fila.unidadesCompradas;
-      const monto = fila.monto_acumulado ?? fila.montoAcumulado;
-      const ticket = fila.ticket_promedio ?? fila.ticketPromedio;
-      const primera = fila.primera_compra ?? fila.primeraCompra ?? "";
-      const ultima = fila.ultima_compra ?? fila.ultimaCompra ?? "";
-      const ordenesMes = fila.ordenes_por_mes ?? fila.ordenesPorMes;
-      const diasProm = fila.dias_promedio_entre_ordenes ?? fila.diasPromedioEntreOrdenes;
-
-      return [
-        escapeCSV(id),
-        escapeCSV(razon),
-        escapeCSV(ordenes),
-        escapeCSV(unidades),
-        escapeCSV(Math.round(monto)),
-        escapeCSV(Math.round(ticket)),
-        escapeCSV(primera),
-        escapeCSV(ultima),
-        escapeCSV(ordenesMes),
-        escapeCSV(diasProm !== null && diasProm !== undefined ? diasProm : "N/A"),
-      ].join(";");
-    });
-
-    const csvContent = "\uFEFF" + [encabezados.map(escapeCSV).join(";"), ...filasCSV].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const fechaDescarga = new Date().toISOString().split("T")[0];
-    link.href = url;
-    link.download = `historico_compras_proveedor_${fechaDescarga}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
-
   // Verificación de rol
   const roleNormalizado = (usuario?.rol || "")
     .normalize("NFD")
@@ -242,8 +195,8 @@ export default function ReporteHistoricoComprasPage() {
           <button
             type="button"
             className="module-secondary-button"
-            onClick={exportarCSV}
-            disabled={cargando || filas.length === 0}
+            onClick={exportarPDF}
+            disabled={cargando || exportando || filas.length === 0}
             style={{
               display: "flex",
               alignItems: "center",
@@ -252,12 +205,13 @@ export default function ReporteHistoricoComprasPage() {
             }}
           >
             <ErpIcon name="download" size={15} />
-            Exportar CSV
+            {exportando ? "Generando PDF…" : "Exportar PDF"}
           </button>
         </div>
       }
     >
       <div className="inventory-screen" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {errorExportacion && <p className="module-alert" role="alert">{errorExportacion}</p>}
         {/* PANEL DE FILTROS */}
         <section
           className="erp-card"
@@ -629,7 +583,7 @@ export default function ReporteHistoricoComprasPage() {
                               ({ordenes} {ordenes === 1 ? "orden" : "órdenes"})
                             </span>
                           </span>
-                          <span style={{ fontWeight: "600", color: "#1e3a8a" }}>
+                          <span style={{ fontWeight: "600", color: "var(--color-primary, #9b4444)" }}>
                             {formatMoney(monto)}{" "}
                             <span
                               style={{
@@ -648,7 +602,7 @@ export default function ReporteHistoricoComprasPage() {
                           style={{
                             width: "100%",
                             height: "18px",
-                            backgroundColor: "var(--color-bg-secondary, #f1f5f9)",
+                            backgroundColor: "#f5eaea",
                             borderRadius: "4px",
                             overflow: "hidden",
                           }}
@@ -657,7 +611,7 @@ export default function ReporteHistoricoComprasPage() {
                             style={{
                               width: `${porcentajeDelMax}%`,
                               height: "100%",
-                              background: "linear-gradient(90deg, #2563eb, #3b82f6)",
+                              background: "linear-gradient(90deg, var(--color-primary, #9b4444), #bd7676)",
                               borderRadius: "4px",
                               transition: "width 0.4s ease-out",
                             }}

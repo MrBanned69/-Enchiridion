@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requestVentasBackend } from "@/lib/ventas-backend";
 
 export async function GET(request) {
+  const token = request.cookies.get("erp_session")?.value;
+  if (!token) return NextResponse.json({ error: "Debes iniciar sesión." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   try {
     const buscar = request.nextUrl.searchParams.get("buscar") || "";
 
@@ -17,6 +19,7 @@ export async function GET(request) {
       `/Ventas/Clientes${query ? `?${query}` : ""}`,
       {
         method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
       },
     );
 

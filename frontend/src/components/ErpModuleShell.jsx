@@ -82,6 +82,12 @@ function navigation() {
 
       <p className="erp-nav-label">GESTIÓN</p>
 
+      {canOpenModule(usuario, "catalogo") && (
+        <Link href="/catalogo" className={`erp-nav-item ${module === "catalogo" ? "is-active" : ""}`}>
+          <ErpIcon name="book" />Catálogo
+        </Link>
+      )}
+
       {canOpenModule(usuario, "compras") && (
         <Link
           href="/compras"
@@ -174,11 +180,10 @@ function navigation() {
           Todo en un mismo lugar<p>Una nueva página para tu librería.</p>
         </div>
         <div className="erp-sidebar-user">
-          <span className="erp-avatar">{iniciales}</span>
-          <div>
-            <strong>{usuario.nombre}</strong>
-            <small>{usuario.rol}</small>
-          </div>
+          <Link href="/mi-perfil" className={`erp-sidebar-profile ${module === "perfil" ? "is-active" : ""}`} aria-current={module === "perfil" ? "page" : undefined}>
+            <span className="erp-avatar">{iniciales}</span>
+            <span className="erp-sidebar-profile-info"><strong>{usuario.nombre}</strong><small>{usuario.rol}</small><span className="erp-sidebar-profile-label">Mi perfil <ErpIcon name="arrow" /></span></span>
+          </Link>
           <button
             className="erp-logout-button"
             onClick={handleLogout}

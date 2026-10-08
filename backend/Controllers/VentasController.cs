@@ -46,6 +46,7 @@ namespace backend.Controllers
                     );
 
                     conexion.Open();
+                    SessionAccess.RequireUser(Request, conexion, UserAccounts.StaffRoles);
 
                     using (var lector = comando.ExecuteReader())
                     {
@@ -70,6 +71,7 @@ namespace backend.Controllers
                     libros
                 }, JsonRequestBehavior.AllowGet);
             }
+            catch (HttpException ex) { return AccessError(ex); }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError(
@@ -118,6 +120,7 @@ namespace backend.Controllers
                     );
 
                     conexion.Open();
+                    SessionAccess.RequireUser(Request, conexion, UserAccounts.StaffRoles);
 
                     using (var lector = comando.ExecuteReader())
                     {
@@ -143,6 +146,7 @@ namespace backend.Controllers
                     clientes
                 }, JsonRequestBehavior.AllowGet);
             }
+            catch (HttpException ex) { return AccessError(ex); }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError(
@@ -231,6 +235,7 @@ namespace backend.Controllers
                 using (var conexion = CrearConexion())
                 {
                     conexion.Open();
+                    SessionAccess.RequireUser(Request, conexion, UserAccounts.StaffRoles);
                     venta.id_usuario = SessionAccess.RequireUser(Request, conexion,
                         "administrador", "administradora", "admin", "vendedor", "vendedora");
 
@@ -764,6 +769,7 @@ namespace backend.Controllers
                 using (var conexion = CrearConexion())
                 {
                     conexion.Open();
+                    SessionAccess.RequireUser(Request, conexion, UserAccounts.StaffRoles);
 
                     string sql = @"
                 SELECT
@@ -895,6 +901,7 @@ namespace backend.Controllers
                     reporte
                 }, JsonRequestBehavior.AllowGet);
             }
+            catch (HttpException ex) { return AccessError(ex); }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError(
@@ -931,6 +938,12 @@ namespace backend.Controllers
                     .ConnectionStrings["ConexionMySQL"]
                     .ConnectionString
             );
+        }
+
+        private JsonResult AccessError(HttpException ex) {
+            Response.StatusCode = ex.GetHttpCode();
+            Response.TrySkipIisCustomErrors = true;
+            return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
         }
     }
 

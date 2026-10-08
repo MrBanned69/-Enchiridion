@@ -14,7 +14,8 @@ INSERT INTO ROL (id_rol, nombre, descripcion) VALUES
 (1, 'Administrador', 'Acceso completo al sistema'),
 (2, 'Comprador', 'Gestion de proveedores y compras'),
 (3, 'Vendedor', 'Gestion de clientes y ventas'),
-(4, 'Contador', 'Gestion de contabilidad y reportes');
+(4, 'Contador', 'Gestion de contabilidad y reportes'),
+(5, 'Cliente', 'Consulta del catálogo y administración de su propia cuenta');
 
 -- Hash BCrypt de ejemplo. Para desarrollo, la contraseña de prueba es:
 -- Password123!

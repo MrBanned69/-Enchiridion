@@ -1,3 +1,7 @@
+export function isCliente(usuario) {
+  return (usuario?.rol || "").trim().toLowerCase() === "cliente";
+}
+
 export function canOpenModule(usuario, module) {
   const role = (usuario?.rol || "")
     .normalize("NFD")
@@ -8,6 +12,9 @@ export function canOpenModule(usuario, module) {
   if (["administrador", "administradora", "admin"].includes(role)) {
     return true;
   }
+  if (module === "perfil") return ["cliente", "comprador", "compradora", "vendedor", "vendedora", "contador", "contadora"].includes(role);
+
+  if (role === "cliente") return ["catalogo", "perfil"].includes(module);
 
   if (module === "contabilidad") {
     return ["contador", "contadora"].includes(role);

@@ -52,6 +52,21 @@ test("Registrar ventas exige sesión y el mismo origen", async () => {
   assert.equal((await route.POST(request())).status, 401);
   assert.equal((await route.POST(request("session-test", "https://otro.example.test"))).status, 403);
 });
+
+for (const [action, query] of [["reporte-clientes", "desde=2026-10-01&hasta=2026-10-08"], ["clientes", "buscar=Cliente"], ["libros", "buscar=Libro"]]) {
+  test(`Ventas ${action} conserva la sesión y los filtros`, async () => {
+    const route = await loadRoute(`ventas/${action}/route.js`, async (url, options) => {
+      assert.equal(options.headers.Authorization, "Bearer session-test");
+      assert.ok(url.endsWith(query));
+      return { response: { status: 200 }, result: { success: true } };
+    });
+    const response = await route.GET({ ...request("session-test"), nextUrl: new URL(`https://erp.example.test/api/ventas/${action}?${query}`) });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Cache-Control"), "no-store");
+    const denied = await loadRoute(`ventas/${action}/route.js`, () => assert.fail("No debe consultar sin sesión"));
+    assert.equal((await denied.GET(request())).status, 401);
+  });
+}
 test("Registrar ventas devuelve el asiento y conserva el error de período cerrado", async () => {
   let status = 200;
   const route = await loadRoute("ventas/registrar/route.js", async (url, options) => {

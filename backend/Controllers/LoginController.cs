@@ -5,12 +5,44 @@ using System.Globalization;
 using System.Web.Security;
 using System.Web.Mvc;
 using MySql.Data.MySqlClient;
+using backend.Models;
+using System.Web;
 
 namespace backend.Controllers
 {
     public class LoginController : Controller
     {
         private const int DuracionSesionHoras = 8;
+
+        [HttpPost]
+        public JsonResult Registrar(string nombre, string email, string password, string rut)
+        {
+            Response.Cache.SetNoStore();
+            try {
+                UserAccounts.Validate(nombre, email, password, true);
+                UserAccounts.ValidateCustomer(rut, "persona");
+                using (var connection = CrearConexion()) {
+                    connection.Open();
+                    using (var transaction = connection.BeginTransaction()) {
+                        int roleId;
+                        using (var command = new MySqlCommand("SELECT id_rol FROM ROL WHERE LOWER(nombre)='cliente' ORDER BY id_rol LIMIT 1", connection, transaction)) {
+                            var role = command.ExecuteScalar();
+                            if (role == null) throw new HttpException(503, "El registro de clientes todavía no está configurado.");
+                            roleId = Convert.ToInt32(role);
+                        }
+                        // Public registration never accepts a role or status from the caller.
+                        var userId = UserAccounts.Create(connection, transaction, nombre, email, password, roleId, "activo");
+                        UserAccounts.SaveCustomer(connection, transaction, userId, nombre, rut, "persona");
+                        transaction.Commit();
+                    }
+                }
+                Response.StatusCode = 201;
+                return Json(new { success = true });
+            }
+            catch (HttpException ex) { return Error(ex.GetHttpCode(), ex.Message); }
+            catch (MySqlException ex) when (ex.Number == 1062) { return Error(409, "Ya existe una cuenta con ese correo."); }
+            catch (Exception ex) { Trace.TraceError("Registro: {0}", ex.GetType().Name); return Error(503, "No se pudo registrar la cuenta. Intenta nuevamente."); }
+        }
 
         [HttpPost]
         public JsonResult Ingresar(string email, string password)

@@ -13,6 +13,7 @@ export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [registering, setRegistering] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -22,6 +23,16 @@ export default function Login() {
     setMessage("");
 
     try {
+      if (registering) {
+        if (form.get("password") !== form.get("confirmPassword")) throw new Error("Las contraseñas no coinciden.");
+        const response = await fetch("/api/auth/registro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre: form.get("nombre"), email: form.get("email"), password: form.get("password"), rut: form.get("rut") }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "No se pudo crear la cuenta.");
+      }
       await login(form.get("email"), form.get("password"));
       router.replace("/");
     } catch (error) {
@@ -93,12 +104,21 @@ export default function Login() {
           <span className="erp-login-emblem">
             <ErpIcon name="book" />
           </span>
-          <p className="erp-eyebrow">BIENVENIDO DE NUEVO</p>
-          <h2 id="login-title">Inicia sesión</h2>
+          <p className="erp-eyebrow">{registering ? "TU CUENTA DE CLIENTE" : "BIENVENIDO DE NUEVO"}</p>
+          <h2 id="login-title">{registering ? "Regístrate como cliente" : "Inicia sesión"}</h2>
           <p className="erp-login-intro">
-            Ingresa tus datos para acceder a tu espacio de trabajo.
+            {registering ? "Crea tu cuenta para acceder a tus módulos de cliente." : "Ingresa tus datos para acceder a tu espacio de trabajo."}
           </p>
           <form onSubmit={handleSubmit} className="erp-login-form">
+            {registering && <>
+              <label htmlFor="nombre">Nombre completo</label>
+              <div className="erp-input-wrap">
+                <input id="nombre" name="nombre" autoComplete="name" maxLength={100} required disabled={submitting} />
+              </div>
+              <label htmlFor="rut">RUT del cliente</label>
+              <div className="erp-input-wrap"><ErpIcon name="user" /><input id="rut" name="rut" placeholder="Ejemplo: 12.345.678-5" maxLength={15} required disabled={submitting} onChange={() => setMessage("")} /></div>
+              <small className="erp-password-hint">Ingresa tu RUT con su dígito verificador.</small>
+            </>}
             <label htmlFor="email">Correo electrónico</label>
             <div className="erp-input-wrap">
               <ErpIcon name="mail" />
@@ -121,7 +141,8 @@ export default function Login() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Ingresa tu contraseña"
-                autoComplete="current-password"
+                autoComplete={registering ? "new-password" : "current-password"}
+                minLength={registering ? 8 : undefined}
                 required
                 onChange={() => setMessage("")}
               />
@@ -137,6 +158,15 @@ export default function Login() {
                 <ErpIcon name={showPassword ? "eyeOff" : "eye"} />
               </button>
             </div>
+            {registering && <>
+              <small className="erp-password-hint">Usa al menos 8 caracteres.</small>
+              <label htmlFor="confirmPassword">Confirmar contraseña</label>
+              <div className="erp-input-wrap">
+                <ErpIcon name="lock" />
+                <input id="confirmPassword" name="confirmPassword" type={showPassword ? "text" : "password"}
+                  autoComplete="new-password" minLength={8} required disabled={submitting} />
+              </div>
+            </>}
             {message && (
               <p id="login-message" className="erp-login-message" role="status">
                 {message}
@@ -148,10 +178,14 @@ export default function Login() {
               disabled={submitting}
               aria-busy={submitting}
             >
-              {submitting ? "Ingresando…" : "Ingresar"}
+              {submitting ? (registering ? "Creando cuenta…" : "Ingresando…") : (registering ? "Crear cuenta" : "Ingresar")}
               <ErpIcon name="arrow" />
             </button>
           </form>
+          <button type="button" className="erp-login-switch" disabled={submitting}
+            onClick={() => { setRegistering(!registering); setMessage(""); }}>
+            {registering ? "Ya tengo una cuenta: iniciar sesión" : "¿Eres nuevo? Regístrate como cliente"}
+          </button>
         </div>
       </section>
     </main>

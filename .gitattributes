@@ -1,0 +1,7 @@
+# Los documentos y las imágenes no deben recibir conversiones de finales de línea.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

@@ -1019,7 +1019,8 @@
   width: 17px;
   height: 17px;
 }
-.erp-input-wrap input {
+.erp-input-wrap input,
+.erp-input-wrap select {
   min-width: 0;
   flex: 1;
   border: none;
@@ -1031,6 +1032,24 @@
 .erp-input-wrap input:focus-visible {
   outline: none;
 }
+.erp-login-switch {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 13px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: white;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.erp-login-switch:hover:not(:disabled) { background: #faf4f4; border-color: var(--color-primary); }
+.erp-login-switch:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.erp-login-switch:disabled { opacity: .5; cursor: not-allowed; }
+.erp-password-hint { display: block; margin-top: 7px; color: var(--color-text-muted); font-size: 11px; line-height: 1.6; }
 .erp-input-wrap input::placeholder {
   color: var(--color-text-muted);
 }
@@ -1342,3 +1361,35 @@
   margin-left: auto;
   color: var(--color-text-muted);
 }
+.erp-sidebar-user .erp-sidebar-profile {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 150ms, border-color 150ms;
+}
+.erp-sidebar-user .erp-sidebar-profile:hover,
+.erp-sidebar-user .erp-sidebar-profile.is-active { background: #faf4f4; border-color: var(--color-secondary); }
+.erp-sidebar-profile-info { display: block; min-width: 0; }
+.erp-sidebar-profile-label { display: flex; align-items: center; gap: 8px; margin-top: 5px; color: var(--color-primary); font-size: 11px; font-weight: 600; }
+.erp-sidebar-profile-label .erp-icon { width: 13px; height: 13px; }
+.erp-sidebar-profile:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.erp-screen a:not([class]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface-card);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.erp-screen a:not([class]):hover { background: #faf4f4; border-color: var(--color-secondary); }
+.erp-screen a:not([class]):focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
