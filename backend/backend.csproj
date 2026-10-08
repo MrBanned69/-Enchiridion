@@ -184,6 +184,9 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\InventarioController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Controllers\LibrosController.cs" />
+    <Compile Include="Data\DbConnectionFactory.cs" />
+    <Compile Include="Models\LibroDto.cs" />
     <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
