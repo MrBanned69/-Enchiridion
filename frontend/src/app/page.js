@@ -7,54 +7,7 @@ import ErpIcon from "@/components/ErpIcon";
 import { useAuth } from "@/components/AuthProvider";
 import "./erp.css";
 import { canOpenModule } from "@/lib/module-access";
-
-const books = [
-  {
-    title: "El Principito",
-    author: "Antoine de Saint-Exupéry",
-    sales: 128,
-    cover: "sage",
-  },
-  { title: "1984", author: "George Orwell", sales: 104, cover: "clay" },
-  {
-    title: "Cien años de soledad",
-    author: "Gabriel García Márquez",
-    sales: 97,
-    cover: "sand",
-  },
-  { title: "El Hobbit", author: "J. R. R. Tolkien", sales: 76, cover: "rose" },
-];
-
-const metrics = [
-  {
-    title: "Ventas del día",
-    value: "$1.250.000",
-    detail: "+12,5 % respecto a ayer",
-    icon: "sales",
-    tone: "success",
-  },
-  {
-    title: "Stock crítico",
-    value: "24 títulos",
-    detail: "Requieren reposición",
-    icon: "inventory",
-    tone: "danger",
-  },
-  {
-    title: "Cuentas por pagar",
-    value: "$850.000",
-    detail: "Próximos vencimientos",
-    icon: "accounting",
-    tone: "warning",
-  },
-  {
-    title: "Recepciones pendientes",
-    value: "7",
-    detail: "Por revisar y validar",
-    icon: "purchases",
-    tone: "neutral",
-  },
-];
+import { money, comparison, localDateLabel, activityDate, chartMaximum } from "@/lib/dashboard";
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -66,6 +19,44 @@ export default function Home() {
     useAuth();
   const [logoutError, setLogoutError] = useState("");
   const [closingSession, setClosingSession] = useState(false);
+  const [dashboard, setDashboard] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+  const [revision, setRevision] = useState(0);
+
+  useEffect(() => {
+    if (!usuario) return;
+    const controller = new AbortController();
+    let requestRevision = 0;
+    async function loadDashboard() {
+      const currentRevision = ++requestRevision;
+      setDashboardLoading(true);
+      setDashboardError("");
+      try {
+        const response = await fetch("/api/dashboard", { cache: "no-store", signal: controller.signal });
+        const result = await response.json();
+        if (!response.ok || result.success !== true) throw new Error(result.error || "No se pudieron consultar los datos del inicio.");
+        if (!controller.signal.aborted && currentRevision === requestRevision) setDashboard(result);
+      } catch (err) {
+        if (!controller.signal.aborted && currentRevision === requestRevision) setDashboardError(err.message);
+      } finally {
+        if (!controller.signal.aborted && currentRevision === requestRevision) setDashboardLoading(false);
+      }
+    }
+    const onVisibility = () => { if (document.visibilityState === "visible") loadDashboard(); };
+    loadDashboard();
+    window.addEventListener("focus", loadDashboard);
+    document.addEventListener("visibilitychange", onVisibility);
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") loadDashboard();
+    }, 60000);
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+      window.removeEventListener("focus", loadDashboard);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [usuario, revision]);
 
   useEffect(() => {
     if (!loading && !usuario && !error) router.replace("/login");
@@ -87,6 +78,24 @@ export default function Home() {
     }
   }
 
+  const ready = !!dashboard && !dashboardLoading && !dashboardError;
+  const data = ready ? dashboard : null;
+  const books = data?.books || [];
+  const days = data?.days || [];
+  const orders = data?.orders || [];
+  const activity = data?.activity || [];
+  const chartMax = chartMaximum(days);
+  const metrics = [
+    { title: "Ventas del día", value: data ? money(data.salesToday) : "—",
+      detail: data ? `${comparison(data.salesToday, data.salesYesterday)} respecto a ayer` : "",
+      icon: "sales", tone: data && data.salesToday < data.salesYesterday ? "danger" : "success" },
+    { title: "Stock crítico", value: data ? `${data.criticalStock} títulos` : "—",
+      detail: "Stock igual o menor al mínimo", icon: "inventory", tone: data?.criticalStock ? "danger" : "neutral" },
+    { title: "Cuentas por pagar", value: data ? money(data.payable) : "—",
+      detail: "Facturas de proveedores pendientes", icon: "accounting", tone: "warning" },
+    { title: "Recepciones pendientes", value: data ? String(data.pendingReceipts) : "—",
+      detail: "Órdenes aprobadas sin recepción", icon: "purchases", tone: "neutral" },
+  ];
   const visibleBooks = books.filter((book) =>
     `${book.title} ${book.author}`
       .toLocaleLowerCase("es")
@@ -205,7 +214,7 @@ export default function Home() {
             <span className="erp-muted">Sucursal</span>
             <strong>Casa Matriz</strong>
           </div>
-          <span className="erp-demo-badge">Modo demo</span>
+          <span className="erp-demo-badge">Datos del sistema</span>
           <div className="erp-topbar-actions">
             <div className="erp-notifications">
               <button
@@ -216,19 +225,19 @@ export default function Home() {
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
               >
                 <ErpIcon name="bell" />
-                <span className="erp-notification-dot" />
+                {data && (data.criticalStock > 0 || data.pendingOrders > 0) && <span className="erp-notification-dot" />}
               </button>
               {notificationsOpen && (
                 <div className="erp-notification-panel" id="erp-notifications">
-                  <strong>Notificaciones de ejemplo</strong>
-                  <p>
-                    <span className="erp-status danger">Inventario</span>24
-                    títulos requieren reposición.
-                  </p>
-                  <p>
-                    <span className="erp-status warning">Compras</span>2 órdenes
-                    esperan aprobación.
-                  </p>
+                  <strong>Notificaciones</strong>
+                  {!ready && <p>{dashboardError || "Cargando notificaciones…"}</p>}
+                  {data?.criticalStock > 0 && <p>
+                    <span className="erp-status danger">Inventario</span>{data.criticalStock} títulos requieren reposición.
+                  </p>}
+                  {data?.pendingOrders > 0 && <p>
+                    <span className="erp-status warning">Compras</span>{data.pendingOrders} órdenes esperan aprobación.
+                  </p>}
+                  {data && data.criticalStock === 0 && data.pendingOrders === 0 && <p>No hay alertas pendientes.</p>}
                 </div>
               )}
             </div>
@@ -315,19 +324,20 @@ export default function Home() {
                 Un resumen para comenzar el día con todo en orden.
               </p>
             </div>
-            <span className="erp-date">
-              <ErpIcon name="calendar" />4 de octubre de 2026
-              <small>Fecha de la demostración</small>
-            </span>
+            <div className="erp-dashboard-controls">
+              <span className="erp-date">
+                <ErpIcon name="calendar" />{data ? localDateLabel(data.date, { day: "numeric", month: "long", year: "numeric" }) : "—"}
+                <small>Hora de Chile</small>
+              </span>
+              <button type="button" className="erp-dashboard-refresh" disabled={dashboardLoading}
+                onClick={() => setRevision((value) => value + 1)}>
+                {dashboardLoading ? "Actualizando…" : "Actualizar"}
+              </button>
+            </div>
           </div>
 
-          <div className="erp-demo-note">
-            <ErpIcon name="info" />
-            <span>
-              Vista previa del sistema. Los indicadores y registros son datos de
-              demostración.
-            </span>
-          </div>
+          {dashboardError && <p className="erp-login-message" role="alert">{dashboardError}</p>}
+          {dashboardLoading && <p className="erp-empty" role="status">Cargando datos del inicio…</p>}
 
           <section
             className="erp-metrics"
@@ -343,7 +353,6 @@ export default function Home() {
                 </div>
                 <strong className="erp-metric-value">{metric.value}</strong>
                 <p className={`erp-metric-detail ${metric.tone}`}>
-                  {metric.tone === "success" && <ErpIcon name="trend" />}
                   {metric.detail}
                 </p>
               </article>
@@ -360,28 +369,27 @@ export default function Home() {
                 <span className="erp-period">Últimos 7 días</span>
               </div>
               <div className="erp-chart-total">
-                <strong>$7.840.000</strong>
-                <span className="erp-status success">↗ 8,2 %</span>
+                <strong>{data ? money(data.weekTotal) : "—"}</strong>
+                {data && <span className={`erp-status ${data.weekTotal >= data.previousWeekTotal ? "success" : "danger"}`}>
+                  {comparison(data.weekTotal, data.previousWeekTotal)}
+                </span>}
                 <span className="erp-muted">vs. semana anterior</span>
               </div>
               <div
                 className="erp-chart"
                 role="img"
-                aria-label="Ventas de ejemplo..."
+                aria-label={data ? `Ventas de los últimos 7 días: ${days.map((day) => `${day.date}: ${money(day.total)}`).join("; ")}` : "Ventas todavía no disponibles"}
               >
                 <div className="erp-chart-scale">
-                  <span>$1,5 M</span>
-                  <span>$1 M</span>
-                  <span>$0,5 M</span>
-                  <span>$0</span>
+                  {[1, 2 / 3, 1 / 3, 0].map((ratio) => <span key={ratio}>{data ? money(chartMax * ratio) : "—"}</span>)}
                 </div>
                 <div className="erp-chart-plot">
                   <div className="erp-chart-grid" />
-                  {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map(
-                    (day, index) => (
-                      <div className="erp-chart-column" key={day}>
-                        <div className={`erp-bar erp-bar-${index + 1}`} />
-                        <span>{day}</span>
+                  {days.map(
+                    (day) => (
+                      <div className="erp-chart-column" key={day.date} title={`${localDateLabel(day.date, { day: "numeric", month: "short" })}: ${money(day.total)}`}>
+                        <div className="erp-bar" style={{ height: `${(day.total / chartMax) * 141}px`, background: day.date === data.date ? "var(--color-primary)" : undefined }} />
+                        <span>{localDateLabel(day.date, { weekday: "short" })}</span>
                       </div>
                     ),
                   )}
@@ -391,6 +399,7 @@ export default function Home() {
                 <span className="erp-dot" />
                 Ventas totales en pesos chilenos
               </div>
+              {data && data.weekTotal === 0 && <p className="erp-empty">No hay ventas pagadas en los últimos 7 días.</p>}
             </section>
 
             <section className="erp-card erp-orders-panel">
@@ -399,24 +408,23 @@ export default function Home() {
                   <p className="erp-eyebrow">POR REVISAR</p>
                   <h2>Órdenes pendientes</h2>
                 </div>
-                <span className="erp-count">2</span>
+                <span className="erp-count">{data ? data.pendingOrders : "—"}</span>
               </div>
               <p className="erp-muted erp-section-description">
                 Compras que esperan aprobación.
               </p>
-              {[
-                ["OC-00124", "Editorial Planeta", "$485.000"],
-                ["OC-00125", "Editorial SM", "$320.000"],
-              ].map(([code, supplier, amount]) => (
+              {orders.map(({code, supplier, total}) => (
                 <article key={code} className="erp-order">
                   <div>
                     <strong>{code}</strong>
                     <span className="erp-status warning">Pendiente</span>
                   </div>
                   <p className="erp-muted">{supplier}</p>
-                  <strong className="erp-order-amount">{amount}</strong>
+                  <strong className="erp-order-amount">{money(total)}</strong>
                 </article>
               ))}
+              {data && orders.length === 0 && <p className="erp-empty">No hay órdenes pendientes.</p>}
+              {data && data.pendingOrders > orders.length && <p className="erp-muted">Mostrando las {orders.length} más recientes.</p>}
               <p className="erp-panel-footnote">
                 <ErpIcon name="info" />
                 La gestión de compras estará disponible próximamente.
@@ -444,10 +452,10 @@ export default function Home() {
                 />
               </label>
               <ul className="erp-book-list">
-                {visibleBooks.map((book) => (
-                  <li key={book.title}>
+                {visibleBooks.map((book, index) => (
+                  <li key={book.isbn}>
                     <span
-                      className={`erp-book-cover ${book.cover}`}
+                      className={`erp-book-cover ${["sage", "clay", "sand", "rose"][index % 4]}`}
                       aria-hidden="true"
                     >
                       <ErpIcon name="book" />
@@ -457,14 +465,14 @@ export default function Home() {
                       <span>{book.author}</span>
                     </div>
                     <span className="erp-book-sales">
-                      <strong>{book.sales}</strong> ventas
+                      <strong>{book.sales}</strong> unidades
                     </span>
                   </li>
                 ))}
               </ul>
-              {visibleBooks.length === 0 && (
+              {data && visibleBooks.length === 0 && (
                 <p className="erp-empty" role="status">
-                  No hay libros que coincidan con tu búsqueda.
+                  {books.length === 0 ? "No hay libros vendidos este mes." : "No hay libros que coincidan con tu búsqueda."}
                 </p>
               )}
             </section>
@@ -478,39 +486,20 @@ export default function Home() {
                 <ErpIcon name="clock" />
               </div>
               <ol className="erp-activity-list">
-                {[
-                  [
-                    "sales",
-                    "Venta registrada",
-                    "Boleta #B-002341",
-                    "Hace 5 minutos",
-                  ],
-                  [
-                    "inventory",
-                    "Stock actualizado",
-                    "El Principito · +20 unidades",
-                    "Hace 18 minutos",
-                  ],
-                  [
-                    "purchases",
-                    "Recepción registrada",
-                    "Editorial Planeta",
-                    "Hace 32 minutos",
-                  ],
-                  ["accounting", "Orden aprobada", "OC-00120", "Hace 1 hora"],
-                ].map(([icon, title, detail, time]) => (
-                  <li key={title}>
+                {activity.map((item) => (
+                  <li key={item.id}>
                     <span className="erp-activity-icon">
-                      <ErpIcon name={icon} />
+                      <ErpIcon name={item.icon} />
                     </span>
                     <div>
-                      <strong>{title}</strong>
-                      <p>{detail}</p>
-                      <small>{time}</small>
+                      <strong>{item.title}</strong>
+                      <p>{item.detail}</p>
+                      <small>{activityDate(item)}</small>
                     </div>
                   </li>
                 ))}
               </ol>
+              {data && activity.length === 0 && <p className="erp-empty">Todavía no hay operaciones registradas.</p>}
             </section>
           </div>
 

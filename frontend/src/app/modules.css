@@ -663,7 +663,7 @@
 .ventas-total-box {
   display: grid;
   gap: 10px;
-  max-width: 460px;
+  width: calc(50% - 8px);
   margin: 24px 0 0 auto;
   padding: 18px;
   border-radius: 12px;
@@ -790,7 +790,7 @@
   }
 
   .ventas-total-box {
-    max-width: none;
+    width: 100%;
   }
 
   .ventas-actions {

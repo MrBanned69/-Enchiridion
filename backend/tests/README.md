@@ -27,3 +27,20 @@ node --experimental-vm-modules --test tests/accounting-routes.test.cjs tests/aut
 ```
 
 Para comprobar la interfaz, iniciar sesión como vendedor o administrador, registrar una venta y revisar el número de asiento en la confirmación. Como contador o administrador, abrir Contabilidad, seleccionar el período de esa venta y filtrar por Ventas. El botón Actualizar vuelve a consultar los registros.
+
+## Inicio conectado a MySQL
+
+`/Dashboard/Resumen` requiere una sesión activa y consulta una vista consistente de los datos. Ventas del día y del gráfico suman el total de ventas pagadas, incluyendo las históricas; excluyen pendientes, anuladas y fechas futuras. El gráfico muestra los siete días hasta hoy y compara con los siete anteriores. El ranking mensual suma unidades vendidas hasta hoy. Los días se determinan con la zona horaria de Chile.
+
+Stock crítico cuenta libros activos con stock igual o inferior al mínimo. Cuentas por pagar suma facturas de proveedores pendientes. Recepciones pendientes cuenta órdenes aprobadas sin recepción. El inicio muestra hasta cinco órdenes pendientes y seis movimientos recientes. Las notificaciones usan los mismos conteos.
+
+La página vuelve a consultar al abrirse, recuperar el foco, volver a una pestaña visible y cada minuto mientras está visible. También tiene un botón Actualizar. Ante un error muestra un mensaje y no sustituye los registros con datos de ejemplo.
+
+Prueba de los cálculos con tablas temporales privadas:
+
+```powershell
+& backend/bin/roslyn/csc.exe /nologo /target:exe /out:backend/bin/DashboardDataTest.exe /reference:backend/bin/backend.dll /reference:backend/bin/MySql.Data.dll /reference:System.Data.dll backend/tests/DashboardDataTest.cs
+& backend/bin/DashboardDataTest.exe (Resolve-Path backend).Path
+```
+
+Comprueba bases vacías, estados de venta, límites de semana/mes/año, ranking, stock, facturas, recepciones y actividad. Desde `frontend`, incluir `tests/dashboard.test.cjs` en el comando de pruebas de Node para verificar la ruta y la presentación de fechas y comparaciones.
